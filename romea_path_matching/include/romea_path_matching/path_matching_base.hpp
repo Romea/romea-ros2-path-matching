@@ -26,7 +26,7 @@ public:
 
   virtual void reset() = 0;
 
-  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr get_node_base_interface() const;
+  rclcpp::Node::SharedPtr get_node() { return node_; }
 
 protected:
   virtual void processOdom_(const Odometry & msg) = 0;
