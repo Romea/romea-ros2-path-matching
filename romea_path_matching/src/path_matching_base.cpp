@@ -4,9 +4,9 @@
 
 namespace
 {
-const double DEFAULT_MAXIMAL_REASEARCH_RADIUS = 10;
-const double DEFAULT_INTERPOLATION_WINDOW_LENGTH = 3;
-const double DEFAULT_PREDICTION_TIME_HORIZON = 0.5;
+const double MAXIMAL_REASEARCH_RADIUS = 10;
+const double INTERPOLATION_WINDOW_LENGTH = 3;
+const double PREDICTION_TIME_HORIZON = 0.5;
 }  // namespace
 
 namespace romea
@@ -18,6 +18,24 @@ PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
   maximal_research_radius_(0),
   interpolation_window_length_(0)
 {
+  using rcl_interfaces::msg::ParameterDescriptor;
+  ParameterDescriptor radius_descr;
+  radius_descr.description =
+    "Maximal distance (in meters) of the robot to the path to accept a matching";
+  node_->declare_parameter("maximal_research_radius", MAXIMAL_REASEARCH_RADIUS, radius_descr);
+
+  ParameterDescriptor iwl_descr;
+  iwl_descr.description = "Length (in meters) of the piece of path used to compute interpolation";
+  node_->declare_parameter("interpolation_window_length", INTERPOLATION_WINDOW_LENGTH, iwl_descr);
+
+  ParameterDescriptor pth_descr;
+  pth_descr.description = "Time (in seconds) to look ahead on the path depending of robot speed";
+  node_->declare_parameter("prediction_time_horizon", PREDICTION_TIME_HORIZON, pth_descr);
+}
+
+PathMatchingBase::NodeBasePtr PathMatchingBase::get_node_base_interface() const
+{
+  return node_->get_node_base_interface();
 }
 
 void PathMatchingBase::configureMatchingInfoPublisher_()
@@ -33,22 +51,18 @@ void PathMatchingBase::configureOdomSubscriber_()
 
 void PathMatchingBase::configureMaximalResearshRadius_()
 {
-  node_->get_parameter_or(
-    "maximal_research_radius", maximal_research_radius_, DEFAULT_MAXIMAL_REASEARCH_RADIUS);
+  node_->get_parameter<double>("maximal_research_radius", maximal_research_radius_);
 }
 
 void PathMatchingBase::configureInterpolationWindowLength_()
 {
-  node_->get_parameter_or(
-    "interpolation_window_length", interpolation_window_length_,
-    DEFAULT_INTERPOLATION_WINDOW_LENGTH);
+  node_->get_parameter<double>("interpolation_window_length", interpolation_window_length_);
   //  path_.setInterpolationWindowLength(interpolation_window_length);
 }
 
 void PathMatchingBase::configurePredictionTimeHorizon_()
 {
-  node_->get_parameter_or(
-    "prediction_time_horizon", prediction_time_horizon_, DEFAULT_PREDICTION_TIME_HORIZON);
+  node_->get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
 }
 
 }  // namespace romea

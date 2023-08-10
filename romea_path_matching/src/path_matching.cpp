@@ -29,6 +29,9 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   matched_points_(),
   tracked_matched_point_index_(0)
 {
+  rcl_interfaces::msg::ParameterDescriptor path_frame_dscr;
+  path_frame_dscr.description = "The frame is used to publish a transform from the world frame";
+  node_->declare_parameter("path_frame_id", "path", std::move(path_frame_dscr));
 }
 
 //-----------------------------------------------------------------------------

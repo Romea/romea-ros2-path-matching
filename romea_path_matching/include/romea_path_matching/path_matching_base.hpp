@@ -14,6 +14,7 @@ class PathMatchingBase
 public:
   using Odometry = nav_msgs::msg::Odometry;
   using PathMatchingInfo2D = romea_path_msgs::msg::PathMatchingInfo2D;
+  using NodeBasePtr = rclcpp::node_interfaces::NodeBaseInterface::SharedPtr;
 
 public:
   PathMatchingBase(const rclcpp::NodeOptions & options);
@@ -26,7 +27,7 @@ public:
 
   virtual void reset() = 0;
 
-  rclcpp::Node::SharedPtr get_node() { return node_; }
+  NodeBasePtr get_node_base_interface() const;
 
 protected:
   virtual void processOdom_(const Odometry & msg) = 0;
