@@ -9,6 +9,7 @@
 #include <tf2_ros/transform_listener.h>
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 namespace romea
 {
@@ -18,7 +19,7 @@ class PathMatchingTf
 public:
   PathMatchingTf();
 
-  void init(rclcpp::Node::SharedPtr & node, const std::string & path_frame_id);
+  void init(rclcpp_lifecycle::LifecycleNode::SharedPtr node, const std::string & path_frame_id);
 
   void setWorldToPathTransformation(const Eigen::Affine3d & tf);
 

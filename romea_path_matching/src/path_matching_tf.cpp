@@ -23,7 +23,8 @@ void PathMatchingTf::publish()
 }
 
 //-----------------------------------------------------------------------------
-void PathMatchingTf::init(rclcpp::Node::SharedPtr & node, const std::string & path_frame_id)
+void PathMatchingTf::init(
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node, const std::string & path_frame_id)
 {
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);

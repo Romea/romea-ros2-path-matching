@@ -27,17 +27,28 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   // uturn_generator_(*this),
   path_(nullptr),
   matched_points_(),
-  tracked_matched_point_index_(0)
+  tracked_matched_point_index_(0),
+  logger_(rclcpp::get_logger("path_matching"))
 {
-  rcl_interfaces::msg::ParameterDescriptor path_frame_dscr;
-  path_frame_dscr.description = "The frame is used to publish a transform from the world frame";
-  node_->declare_parameter("path_frame_id", "path", std::move(path_frame_dscr));
+  rcl_interfaces::msg::ParameterDescriptor path_frame_descr;
+  path_frame_descr.description = "The frame is used to publish a transform from the world frame";
+  declare_parameter("path_frame_id", "path", std::move(path_frame_descr));
+
+  rcl_interfaces::msg::ParameterDescriptor autostart_descr;
+  autostart_descr.description = "Automatic configuration and activation when the node is started";
+  declare_parameter("autostart", false, std::move(autostart_descr));
+  get_parameter("autostart", autostart_);
+
+  if (autostart_) {
+    transition_call_ = deferred_call(*this, [this] { configure(); });
+  }
 }
 
 //-----------------------------------------------------------------------------
-void PathMatching::init()
+PathMatching::CallbackReturn PathMatching::on_configure(const rclcpp_lifecycle::State &)
 {
-  path_frame_id_ = get_parameter<std::string>(node_, "path_frame_id");
+  path_frame_id_ = romea::get_parameter<std::string>(shared_from_this(), "path_frame_id");
+
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
 
@@ -47,11 +58,32 @@ void PathMatching::init()
   configureMatchingInfoPublisher_();
   configureOdomSubscriber_();
   // display_.init(path_frame_id_);
-  tf_.init(node_, path_frame_id_);
+  tf_.init(shared_from_this(), path_frame_id_);
   // comparator_.init();
   // uturn_generator_.init();
   // reset_sub_ = private_nh.subscribe<std_msgs::Bool>("reset", 1, &PathMatching::resetCallback, this);
   // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
+
+  if (autostart_) {
+    transition_call_ = deferred_call(this, [this] { activate(); });
+  }
+
+  RCLCPP_INFO(logger_, "configured");
+  return CallbackReturn::SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PathMatching::CallbackReturn PathMatching::on_activate(const rclcpp_lifecycle::State &)
+{
+  RCLCPP_INFO(logger_, "activated");
+  return CallbackReturn::SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+PathMatching::CallbackReturn PathMatching::on_deactivate(const rclcpp_lifecycle::State &)
+{
+  RCLCPP_INFO(logger_, "deactivated");
+  return CallbackReturn::SUCCESS;
 }
 
 // void PathMatching::resetCallback(const std_msgs::Bool::ConstPtr & msg) { resetMatching(); }

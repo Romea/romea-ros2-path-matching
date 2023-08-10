@@ -4,30 +4,27 @@
 //ros
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <romea_path_msgs/msg/path_matching_info2_d.hpp>
 
 namespace romea
 {
 
-class PathMatchingBase
+class PathMatchingBase : public rclcpp_lifecycle::LifecycleNode
 {
 public:
   using Odometry = nav_msgs::msg::Odometry;
   using PathMatchingInfo2D = romea_path_msgs::msg::PathMatchingInfo2D;
-  using NodeBasePtr = rclcpp::node_interfaces::NodeBaseInterface::SharedPtr;
+  using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
 public:
   PathMatchingBase(const rclcpp::NodeOptions & options);
 
   virtual ~PathMatchingBase() = default;
 
-  virtual void init() = 0;
-
   // virtual void publishDiagnostics(const ros::TimerEvent & event)=0;
 
   virtual void reset() = 0;
-
-  NodeBasePtr get_node_base_interface() const;
 
 protected:
   virtual void processOdom_(const Odometry & msg) = 0;
@@ -43,8 +40,6 @@ protected:
   void configureOdomSubscriber_();
 
 protected:
-  rclcpp::Node::SharedPtr node_;
-
   double prediction_time_horizon_;
   double maximal_research_radius_;
   double interpolation_window_length_;

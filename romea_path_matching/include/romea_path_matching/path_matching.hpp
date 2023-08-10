@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <rclcpp/rclcpp.hpp>
+#include <romea_common_utils/deferred_call.hpp>
 #include <romea_core_common/geometry/Pose2D.hpp>
 #include <romea_core_common/geometry/Twist2D.hpp>
 #include <romea_core_path/Path2D.hpp>
@@ -26,7 +27,11 @@ private:
 public:
   PathMatching(const rclcpp::NodeOptions & options);
 
-  void init() override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
 
   // virtual void publishDiagnostics(const ros::TimerEvent & event) override;
 
@@ -72,6 +77,7 @@ protected:
   // PathMatchingDiagnostic diagnostics_;
   std::string path_frame_id_;
   // UturnGenerator uturn_generator_;
+  bool autostart_;
 
   UpdateCb update_cb_;
   std::unique_ptr<Path2D> path_;
@@ -82,6 +88,9 @@ protected:
   // ros::Publisher annotations_pub_;
   // double annotation_dist_max_;
   // double annotation_dist_min_;
+
+  rclcpp::Logger logger_;
+  std::unique_ptr<DeferredCall> transition_call_;
 };
 
 }  // namespace romea
