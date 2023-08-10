@@ -66,7 +66,7 @@ bool PathMatchingTf::evaluateMapToPathTransformation(
     world_to_map_ = tf2::transformToEigen(transformStamped);
     map_to_path_ = tf2::transformToEigen(transformStamped).inverse() * world_to_map_;
     return true;
-  } catch (tf2::TransformException ex) {
+  } catch (tf2::TransformException & ex) {
     RCLCPP_WARN_STREAM(logger_, "transform failed: " << ex.what());
     return false;
   }

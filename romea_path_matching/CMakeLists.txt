@@ -12,6 +12,8 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(romea_common REQUIRED)
 find_package(romea_common_utils REQUIRED)
@@ -20,15 +22,16 @@ find_package(romea_path_utils REQUIRED)
 find_package(romea_core_path REQUIRED)
 find_package(tf2_ros REQUIRED)
 
-add_executable(path_matching_node
-  src/path_matching_node.cpp
+add_library(${PROJECT_NAME} SHARED
   src/path_matching_base.cpp
   src/path_matching.cpp
   src/path_matching_tf.cpp
 )
 
-ament_target_dependencies(path_matching_node
+ament_target_dependencies(${PROJECT_NAME}
   rclcpp
+  rclcpp_components
+  rclcpp_lifecycle
   nav_msgs
   romea_common
   romea_common_utils
@@ -38,8 +41,16 @@ ament_target_dependencies(path_matching_node
   tf2_ros
 )
 
-target_include_directories(path_matching_node PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
+rclcpp_components_register_node(${PROJECT_NAME}
+  PLUGIN "romea::PathMatching"
+  EXECUTABLE path_matching_node
+)
+
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -51,9 +62,5 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
-
-install(TARGETS
- path_matching_node
- DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

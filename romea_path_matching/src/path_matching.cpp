@@ -217,3 +217,6 @@ size_t PathMatching::getCurrentSectionIndex() const
 // }
 
 }  // namespace romea
+
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(romea::PathMatching)
