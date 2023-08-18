@@ -26,26 +26,24 @@ public:
 
   virtual void reset() = 0;
 
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+
 protected:
   virtual void processOdom_(const Odometry & msg) = 0;
-
-  void configureMaximalResearshRadius_();
-
-  void configureInterpolationWindowLength_();
-
-  void configurePredictionTimeHorizon_();
-
-  void configureMatchingInfoPublisher_();
-
-  void configureOdomSubscriber_();
 
 protected:
   double prediction_time_horizon_;
   double maximal_research_radius_;
   double interpolation_window_length_;
 
+  bool is_active_ = false;
+
   rclcpp::Subscription<Odometry>::SharedPtr odom_sub_;
-  rclcpp::Publisher<PathMatchingInfo2D>::SharedPtr match_pub_;
+  rclcpp_lifecycle::LifecyclePublisher<PathMatchingInfo2D>::SharedPtr match_pub_;
 };
 
 }  // namespace romea

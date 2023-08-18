@@ -22,7 +22,7 @@ namespace romea
 class PathMatching : public PathMatchingBase
 {
 private:
-  using UpdateCb = std::function<void()>;
+  using UpdateCb = std::function<void ()>;
 
 public:
   PathMatching(const rclcpp::NodeOptions & options);
@@ -43,19 +43,19 @@ public:
 
   virtual void reset() override;
 
-  bool isMatching() const { return matched_points_.size(); }
+  bool isMatching() const {return matched_points_.size();}
 
-  void setUpdateCb(const UpdateCb & cb) { update_cb_ = cb; }
-  void setUpdateCb(UpdateCb && cb) { update_cb_ = std::move(cb); }
+  void setUpdateCb(const UpdateCb & cb) {update_cb_ = cb;}
+  void setUpdateCb(UpdateCb && cb) {update_cb_ = std::move(cb);}
 
   const PathSection2D * getCurrentSection() const;
   size_t getCurrentSectionIndex() const;
 
-  const Path2D & getPath() const { return *path_; }
-  Path2D & getPath() { return *path_; }
+  const Path2D & getPath() const {return *path_;}
+  Path2D & getPath() {return *path_;}
 
-  const std::string & getFrame() const { return path_frame_id_; }
-  const Pose2D & getVehiclePose() const { return vehicle_pose_; }
+  const std::string & getFrame() const {return path_frame_id_;}
+  const Pose2D & getVehiclePose() const {return vehicle_pose_;}
 
   // void resetCallback(const std_msgs::Bool::ConstPtr & msg);
 

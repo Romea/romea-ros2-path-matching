@@ -34,6 +34,10 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   path_frame_descr.description = "The frame is used to publish a transform from the world frame";
   declare_parameter("path_frame_id", "path", std::move(path_frame_descr));
 
+  rcl_interfaces::msg::ParameterDescriptor path_descr;
+  path_descr.description = "Filename of the path to follow";
+  declare_parameter("path", rclcpp::PARAMETER_STRING, std::move(path_descr));
+
   rcl_interfaces::msg::ParameterDescriptor autostart_descr;
   autostart_descr.description = "Automatic configuration and activation when the node is started";
   declare_parameter("autostart", false, std::move(autostart_descr));
@@ -45,18 +49,16 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
 }
 
 //-----------------------------------------------------------------------------
-PathMatching::CallbackReturn PathMatching::on_configure(const rclcpp_lifecycle::State &)
-{
+PathMatching::CallbackReturn PathMatching::on_configure(const rclcpp_lifecycle::State & state)
+try {
+  PathMatchingBase::on_configure(state);
+
   path_frame_id_ = romea::get_parameter<std::string>(shared_from_this(), "path_frame_id");
+  std::string path = romea::get_parameter<std::string>(shared_from_this(), "path");
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
 
-  configureMaximalResearshRadius_();
-  configureInterpolationWindowLength_();
-  configurePredictionTimeHorizon_();
-  configureMatchingInfoPublisher_();
-  configureOdomSubscriber_();
   // display_.init(path_frame_id_);
   tf_.init(shared_from_this(), path_frame_id_);
   // comparator_.init();
@@ -68,22 +70,30 @@ PathMatching::CallbackReturn PathMatching::on_configure(const rclcpp_lifecycle::
     transition_call_ = deferred_call(this, [this] { activate(); });
   }
 
+  loadPath(path);
+
   RCLCPP_INFO(logger_, "configured");
   return CallbackReturn::SUCCESS;
+
+} catch (const std::runtime_error & e) {
+  RCLCPP_ERROR_STREAM(logger_, "configuration failed: " << e.what());
+  return CallbackReturn::FAILURE;
 }
 
 //-----------------------------------------------------------------------------
-PathMatching::CallbackReturn PathMatching::on_activate(const rclcpp_lifecycle::State &)
+PathMatching::CallbackReturn PathMatching::on_activate(const rclcpp_lifecycle::State & state)
 {
+  CallbackReturn result = PathMatchingBase::on_activate(state);
   RCLCPP_INFO(logger_, "activated");
-  return CallbackReturn::SUCCESS;
+  return result;
 }
 
 //-----------------------------------------------------------------------------
-PathMatching::CallbackReturn PathMatching::on_deactivate(const rclcpp_lifecycle::State &)
+PathMatching::CallbackReturn PathMatching::on_deactivate(const rclcpp_lifecycle::State & state)
 {
+  CallbackReturn result = PathMatchingBase::on_deactivate(state);
   RCLCPP_INFO(logger_, "deactivated");
-  return CallbackReturn::SUCCESS;
+  return result;
 }
 
 // void PathMatching::resetCallback(const std_msgs::Bool::ConstPtr & msg) { resetMatching(); }
@@ -127,6 +137,8 @@ bool PathMatching::tryToEvaluateMapToPathTransformation_(
 //-----------------------------------------------------------------------------
 void PathMatching::processOdom_(const Odometry & msg)
 {
+  if (!is_active_) return;
+
   PoseAndTwist3D enuPoseAndBodyTwist3D;
   to_romea(msg.pose, enuPoseAndBodyTwist3D.pose);
   to_romea(msg.twist, enuPoseAndBodyTwist3D.twist);
@@ -146,7 +158,9 @@ void PathMatching::processOdom_(const Odometry & msg)
       // publishNearAnnotations(matched_point, msg.header.stamp);
     }
 
-    if (update_cb_) update_cb_();
+    if (update_cb_) {
+      update_cb_();
+    }
 
     tf_.publish();
     // displayResults_(vehicle_pose_);

@@ -33,31 +33,33 @@ PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
   declare_parameter("prediction_time_horizon", PREDICTION_TIME_HORIZON, pth_descr);
 }
 
-void PathMatchingBase::configureMatchingInfoPublisher_()
-{
-  match_pub_ = create_publisher<PathMatchingInfo2D>("path_matching_info", best_effort(1));
-}
-
-void PathMatchingBase::configureOdomSubscriber_()
-{
-  auto callback = std::bind(&PathMatchingBase::processOdom_, this, std::placeholders::_1);
-  odom_sub_ = create_subscription<Odometry>("odom", best_effort(1), callback);
-}
-
-void PathMatchingBase::configureMaximalResearshRadius_()
+PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lifecycle::State &)
 {
   get_parameter<double>("maximal_research_radius", maximal_research_radius_);
-}
-
-void PathMatchingBase::configureInterpolationWindowLength_()
-{
+  get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
   get_parameter<double>("interpolation_window_length", interpolation_window_length_);
   //  path_.setInterpolationWindowLength(interpolation_window_length);
+
+  match_pub_ = create_publisher<PathMatchingInfo2D>("path_matching_info", best_effort(1));
+
+  auto callback = std::bind(&PathMatchingBase::processOdom_, this, std::placeholders::_1);
+  odom_sub_ = create_subscription<Odometry>("odom", best_effort(1), callback);
+
+  return CallbackReturn::SUCCESS;
 }
 
-void PathMatchingBase::configurePredictionTimeHorizon_()
+PathMatchingBase::CallbackReturn PathMatchingBase::on_activate(const rclcpp_lifecycle::State &)
 {
-  get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
+  match_pub_->on_activate();
+  is_active_ = true;
+  return CallbackReturn::SUCCESS;
+}
+
+PathMatchingBase::CallbackReturn PathMatchingBase::on_deactivate(const rclcpp_lifecycle::State &)
+{
+  match_pub_->on_deactivate();
+  is_active_ = false;
+  return CallbackReturn::SUCCESS;
 }
 
 }  // namespace romea
