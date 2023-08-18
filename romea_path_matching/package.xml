@@ -19,6 +19,7 @@
   <depend>romea_path_utils</depend>
   <depend>romea_core_path</depend>
   <depend>tf2_ros</depend>
+  <depend>visualization_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

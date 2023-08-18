@@ -21,11 +21,14 @@ find_package(romea_path_msgs REQUIRED)
 find_package(romea_path_utils REQUIRED)
 find_package(romea_core_path REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(visualization_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/path_matching_base.cpp
   src/path_matching.cpp
   src/path_matching_tf.cpp
+  src/path_matching_display.cpp
+  src/path_matching_display_base.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}
@@ -39,6 +42,7 @@ ament_target_dependencies(${PROJECT_NAME}
   romea_path_utils
   romea_core_path
   tf2_ros
+  visualization_msgs
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

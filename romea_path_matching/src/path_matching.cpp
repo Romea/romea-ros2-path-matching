@@ -20,9 +20,6 @@ namespace romea
 ////////////////////////////////////////////////////////////////////////////////
 PathMatching::PathMatching(const rclcpp::NodeOptions & options)
 : PathMatchingBase(options),
-  // tf_(),
-  // display_(),
-  // diagnostics_(),
   // comparator_(*this, tf_.getTfBuffer()),
   // uturn_generator_(*this),
   path_(nullptr),
@@ -43,6 +40,10 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   declare_parameter("autostart", false, std::move(autostart_descr));
   get_parameter("autostart", autostart_);
 
+  rcl_interfaces::msg::ParameterDescriptor display_descr;
+  display_descr.description = "Enable the publication of rviz markers";
+  declare_parameter("display", true, std::move(display_descr));
+
   if (autostart_) {
     transition_call_ = deferred_call(*this, [this] { configure(); });
   }
@@ -55,11 +56,12 @@ try {
 
   path_frame_id_ = romea::get_parameter<std::string>(shared_from_this(), "path_frame_id");
   std::string path = romea::get_parameter<std::string>(shared_from_this(), "path");
+  display_activated_ = romea::get_parameter<bool>(shared_from_this(), "display");
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
 
-  // display_.init(path_frame_id_);
+  display_.init(shared_from_this(), path_frame_id_);
   tf_.init(shared_from_this(), path_frame_id_);
   // comparator_.init();
   // uturn_generator_.init();
@@ -105,11 +107,14 @@ void PathMatching::loadPath(const std::string & filename)
   path_ = std::make_unique<Path2D>(
     path_file.getWayPoints(), interpolation_window_length_, path_file.getAnnotations());
   tf_.setWorldToPathTransformation(path_file.getWorldToPathTransformation());
-  // display_.loadWayPoints(path_file.getWayPoints());
+  display_.load_waypoints(path_file.getWayPoints());
   // diagnostics_.updatePathStatus(filename, true);
 }
 
-// void PathMatching::updateDisplay() { display_.loadPath(*path_); }
+void PathMatching::updateDisplay()
+{
+  display_.load_path(*path_);
+}
 
 //-----------------------------------------------------------------------------
 void PathMatching::resetMatching()
@@ -120,7 +125,7 @@ void PathMatching::resetMatching()
 //-----------------------------------------------------------------------------
 void PathMatching::reset()
 {
-  // display_.reset();
+  display_.clear();
   matched_points_.clear();
   // tf_.reset();
 }
@@ -158,12 +163,8 @@ void PathMatching::processOdom_(const Odometry & msg)
       // publishNearAnnotations(matched_point, msg.header.stamp);
     }
 
-    if (update_cb_) {
-      update_cb_();
-    }
-
     tf_.publish();
-    // displayResults_(vehicle_pose_);
+    if (display_activated_) displayResults_(vehicle_pose_);
   }
 }
 
@@ -191,20 +192,19 @@ bool PathMatching::tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D 
 }
 
 //-----------------------------------------------------------------------------
-// void PathMatching::displayResults_(const Pose2D & /*vehicle_pose*/)
-// {
-//   display_.deleteMarkers();
-//   display_.displayPathMarkers(vehicle_pose);
-//
-//   if (!matched_points_.empty()) {
-//     const auto & section =
-//       path_->getSection(matched_points_[tracked_matched_point_index_].sectionIndex);
-//     const auto & curve = section.getCurve(matched_points_[tracked_matched_point_index_].curveIndex);
-//     display_.displayCurveMarkers(curve);
-//   }
-//
-//   display_.trigger();
-// }
+void PathMatching::displayResults_(const Pose2D & /*vehicle_pose*/)
+{
+  display_.clear();
+
+  if (!matched_points_.empty()) {
+    const auto & section =
+      path_->getSection(matched_points_[tracked_matched_point_index_].sectionIndex);
+    const auto & curve = section.getCurve(matched_points_[tracked_matched_point_index_].curveIndex);
+    display_.load_curve(curve);
+  }
+
+  display_.publish();
+}
 
 //-----------------------------------------------------------------------------
 // void PathMatching::publishDiagnostics(const ros::TimerEvent &)

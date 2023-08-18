@@ -1,7 +1,6 @@
 #ifndef PathMatchingTf_HPP
 #define PathMatchingTf_HPP
 
-//ros
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/static_transform_broadcaster.h>

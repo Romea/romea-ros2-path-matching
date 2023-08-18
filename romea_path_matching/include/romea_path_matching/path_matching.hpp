@@ -12,7 +12,7 @@
 
 #include "path_matching_base.hpp"
 // #include "path_matching_diagnostic.hpp"
-// #include "path_matching_display.hpp"
+#include "path_matching_display.hpp"
 #include "path_matching_tf.hpp"
 // #include "std_msgs/Bool.h"
 
@@ -37,16 +37,13 @@ public:
 
   void loadPath(const std::string & filename);
 
-  // void updateDisplay();
+  void updateDisplay();
 
   void resetMatching();
 
   virtual void reset() override;
 
   bool isMatching() const {return matched_points_.size();}
-
-  void setUpdateCb(const UpdateCb & cb) {update_cb_ = cb;}
-  void setUpdateCb(UpdateCb && cb) {update_cb_ = std::move(cb);}
 
   const PathSection2D * getCurrentSection() const;
   size_t getCurrentSectionIndex() const;
@@ -69,15 +66,16 @@ protected:
 
   bool tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D & vehicle_twist);
 
-  // void displayResults_(const Pose2D & vehicle_pose);
+  void displayResults_(const Pose2D & vehicle_pose);
 
 protected:
   PathMatchingTf tf_;
-  // PathMatchingDisplay display_;
+  PathMatchingDisplay display_;
   // PathMatchingDiagnostic diagnostics_;
   std::string path_frame_id_;
   // UturnGenerator uturn_generator_;
   bool autostart_;
+  bool display_activated_;
 
   UpdateCb update_cb_;
   std::unique_ptr<Path2D> path_;
