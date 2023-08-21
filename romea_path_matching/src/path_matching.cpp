@@ -154,8 +154,9 @@ void PathMatching::processOdom_(const Odometry & msg)
     const auto & map_to_path = tf_.getMapToPathTransformation();
     vehicle_pose_ = toPose2D(map_to_path * enuPoseAndBodyTwist3D.pose);
     auto vehicle_twist = toTwist2D(enuPoseAndBodyTwist3D.twist);
+    bool matching_status = tryToMatchOnPath_(vehicle_pose_, vehicle_twist);
 
-    if (tryToMatchOnPath_(vehicle_pose_, vehicle_twist)) {
+    if (matching_status) {
       match_pub_->publish(to_ros_msg(
         msg.header.stamp, matched_points_, tracked_matched_point_index_, path_->getLength(),
         vehicle_twist));
@@ -164,8 +165,17 @@ void PathMatching::processOdom_(const Odometry & msg)
       // publishNearAnnotations(matched_point, msg.header.stamp);
     }
 
+    // force a diagnostic update when matching status changes
+    if (matching_status != previous_matching_status_) {
+      diagnostics_.publish();
+    }
+
     tf_.publish();
-    if (display_activated_) displayResults_(vehicle_pose_);
+    if (display_activated_) {
+      displayResults_(vehicle_pose_);
+    }
+
+    previous_matching_status_ = matching_status;
   }
 }
 

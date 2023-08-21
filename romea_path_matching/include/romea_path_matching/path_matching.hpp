@@ -84,6 +84,7 @@ protected:
   // ros::Publisher annotations_pub_;
   // double annotation_dist_max_;
   // double annotation_dist_min_;
+  bool previous_matching_status_ = false;
 
   rclcpp::Logger logger_;
   std::unique_ptr<DeferredCall> transition_call_;
