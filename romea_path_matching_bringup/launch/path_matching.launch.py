@@ -19,5 +19,6 @@ def generate_launch_description():
             remappings=[
                 ('odom', 'localisation/filtered_odom'),
             ],
+            # prefix='terminator -x gdbserver --no-startup-with-shell localhost:1337',
         )
     ])

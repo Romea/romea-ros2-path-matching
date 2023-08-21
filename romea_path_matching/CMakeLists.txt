@@ -29,6 +29,8 @@ add_library(${PROJECT_NAME} SHARED
   src/path_matching_tf.cpp
   src/path_matching_display.cpp
   src/path_matching_display_base.cpp
+  src/path_matching_diagnostic.cpp
+  src/path_matching_diagnostic_base.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}

@@ -14,7 +14,7 @@ void PathMatchingDisplayBase::init(
   rclcpp_lifecycle::LifecycleNode::SharedPtr node, const std::string & path_frame_id)
 {
   initMarkers(path_frame_id);
-  marker_pub_ = node->create_publisher<MarkerArray>("markers", best_effort(1));
+  marker_pub_ = node->create_publisher<MarkerArray>("~/markers", reliable(1));
   marker_pub_->on_activate();
 }
 

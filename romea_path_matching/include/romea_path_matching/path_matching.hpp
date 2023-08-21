@@ -11,7 +11,7 @@
 #include <romea_core_path/PathPosture2D.hpp>
 
 #include "path_matching_base.hpp"
-// #include "path_matching_diagnostic.hpp"
+#include "path_matching_diagnostic.hpp"
 #include "path_matching_display.hpp"
 #include "path_matching_tf.hpp"
 // #include "std_msgs/Bool.h"
@@ -32,8 +32,6 @@ public:
   CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
 
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
-
-  // virtual void publishDiagnostics(const ros::TimerEvent & event) override;
 
   void loadPath(const std::string & filename);
 
@@ -71,7 +69,7 @@ protected:
 protected:
   PathMatchingTf tf_;
   PathMatchingDisplay display_;
-  // PathMatchingDiagnostic diagnostics_;
+  PathMatchingDiagnostic diagnostics_;
   std::string path_frame_id_;
   // UturnGenerator uturn_generator_;
   bool autostart_;

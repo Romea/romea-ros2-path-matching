@@ -22,8 +22,6 @@ public:
 
   virtual ~PathMatchingBase() = default;
 
-  // virtual void publishDiagnostics(const ros::TimerEvent & event)=0;
-
   virtual void reset() = 0;
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;

@@ -38,9 +38,8 @@ PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lif
   get_parameter<double>("maximal_research_radius", maximal_research_radius_);
   get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
   get_parameter<double>("interpolation_window_length", interpolation_window_length_);
-  //  path_.setInterpolationWindowLength(interpolation_window_length);
 
-  match_pub_ = create_publisher<PathMatchingInfo2D>("path_matching_info", best_effort(1));
+  match_pub_ = create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
 
   auto callback = std::bind(&PathMatchingBase::processOdom_, this, std::placeholders::_1);
   odom_sub_ = create_subscription<Odometry>("odom", best_effort(1), callback);

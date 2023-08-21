@@ -63,6 +63,7 @@ try {
 
   display_.init(shared_from_this(), path_frame_id_);
   tf_.init(shared_from_this(), path_frame_id_);
+  diagnostics_.init(shared_from_this());
   // comparator_.init();
   // uturn_generator_.init();
   // reset_sub_ = private_nh.subscribe<std_msgs::Bool>("reset", 1, &PathMatching::resetCallback, this);
@@ -107,8 +108,8 @@ void PathMatching::loadPath(const std::string & filename)
   path_ = std::make_unique<Path2D>(
     path_file.getWayPoints(), interpolation_window_length_, path_file.getAnnotations());
   tf_.setWorldToPathTransformation(path_file.getWorldToPathTransformation());
-  display_.load_waypoints(path_file.getWayPoints());
-  // diagnostics_.updatePathStatus(filename, true);
+  display_.load_path(*path_);
+  diagnostics_.update_path_status(filename, true);
 }
 
 void PathMatching::updateDisplay()
@@ -135,7 +136,7 @@ bool PathMatching::tryToEvaluateMapToPathTransformation_(
   const rclcpp::Time & stamp, const std::string & map_frame_id)
 {
   bool status = tf_.evaluateMapToPathTransformation(stamp, map_frame_id);
-  // diagnostics_.updateLookupTransformStatus(status);
+  diagnostics_.update_lookup_transform_status(status);
   return status;
 }
 
@@ -147,7 +148,7 @@ void PathMatching::processOdom_(const Odometry & msg)
   PoseAndTwist3D enuPoseAndBodyTwist3D;
   to_romea(msg.pose, enuPoseAndBodyTwist3D.pose);
   to_romea(msg.twist, enuPoseAndBodyTwist3D.twist);
-  // diagnostics_.updateOdomRate(romea::toRomeaDuration(msg->header.stamp));
+  diagnostics_.update_odom_rate(to_romea_duration(msg.header.stamp));
 
   if (tryToEvaluateMapToPathTransformation_(msg.header.stamp, msg.header.frame_id)) {
     const auto & map_to_path = tf_.getMapToPathTransformation();
@@ -187,15 +188,13 @@ bool PathMatching::tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D 
     tracked_matched_point_index_ = bestMatchedPointIndex(matched_points_, vehicle_speed);
   }
 
-  // diagnostics_.updateMatchingStatus(!matched_points_.empty());
+  diagnostics_.update_matching_status(!matched_points_.empty());
   return !matched_points_.empty();
 }
 
 //-----------------------------------------------------------------------------
 void PathMatching::displayResults_(const Pose2D & /*vehicle_pose*/)
 {
-  display_.clear();
-
   if (!matched_points_.empty()) {
     const auto & section =
       path_->getSection(matched_points_[tracked_matched_point_index_].sectionIndex);
@@ -205,12 +204,6 @@ void PathMatching::displayResults_(const Pose2D & /*vehicle_pose*/)
 
   display_.publish();
 }
-
-//-----------------------------------------------------------------------------
-// void PathMatching::publishDiagnostics(const ros::TimerEvent &)
-// {
-//   diagnostics_.publish();
-// }
 
 //-----------------------------------------------------------------------------
 const PathSection2D * PathMatching::getCurrentSection() const
