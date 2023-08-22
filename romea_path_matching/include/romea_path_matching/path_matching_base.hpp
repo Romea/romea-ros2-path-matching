@@ -6,6 +6,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <romea_path_msgs/msg/path_matching_info2_d.hpp>
+#include <std_srvs/srv/empty.hpp>
 
 namespace romea
 {
@@ -16,6 +17,7 @@ public:
   using Odometry = nav_msgs::msg::Odometry;
   using PathMatchingInfo2D = romea_path_msgs::msg::PathMatchingInfo2D;
   using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+  using ResetSrv = std_srvs::srv::Empty;
 
 public:
   PathMatchingBase(const rclcpp::NodeOptions & options);
@@ -33,6 +35,8 @@ public:
 protected:
   virtual void processOdom_(const Odometry & msg) = 0;
 
+  void reset_srv_callback_(ResetSrv::Request::SharedPtr, ResetSrv::Response::SharedPtr);
+
 protected:
   double prediction_time_horizon_;
   double maximal_research_radius_;
@@ -42,6 +46,7 @@ protected:
 
   rclcpp::Subscription<Odometry>::SharedPtr odom_sub_;
   rclcpp_lifecycle::LifecyclePublisher<PathMatchingInfo2D>::SharedPtr match_pub_;
+  rclcpp::Service<ResetSrv>::SharedPtr reset_srv_;
 };
 
 }  // namespace romea

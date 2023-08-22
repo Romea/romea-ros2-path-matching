@@ -41,8 +41,12 @@ PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lif
 
   match_pub_ = create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
 
-  auto callback = std::bind(&PathMatchingBase::processOdom_, this, std::placeholders::_1);
+  using namespace std::placeholders;
+  auto callback = std::bind(&PathMatchingBase::processOdom_, this, _1);
   odom_sub_ = create_subscription<Odometry>("odom", best_effort(1), callback);
+
+  auto reset_callback = std::bind(&PathMatchingBase::reset_srv_callback_, this, _1, _2);
+  reset_srv_ = create_service<std_srvs::srv::Empty>("~/reset", reset_callback);
 
   return CallbackReturn::SUCCESS;
 }
@@ -59,6 +63,12 @@ PathMatchingBase::CallbackReturn PathMatchingBase::on_deactivate(const rclcpp_li
   match_pub_->on_deactivate();
   is_active_ = false;
   return CallbackReturn::SUCCESS;
+}
+
+void PathMatchingBase::reset_srv_callback_(
+  ResetSrv::Request::SharedPtr, ResetSrv::Response::SharedPtr)
+{
+  reset();
 }
 
 }  // namespace romea

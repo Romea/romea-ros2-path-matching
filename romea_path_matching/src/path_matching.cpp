@@ -99,8 +99,6 @@ PathMatching::CallbackReturn PathMatching::on_deactivate(const rclcpp_lifecycle:
   return result;
 }
 
-// void PathMatching::resetCallback(const std_msgs::Bool::ConstPtr & msg) { resetMatching(); }
-
 //-----------------------------------------------------------------------------
 void PathMatching::loadPath(const std::string & filename)
 {
@@ -118,17 +116,15 @@ void PathMatching::updateDisplay()
 }
 
 //-----------------------------------------------------------------------------
-void PathMatching::resetMatching()
-{
-  matched_points_.clear();
-}
-
-//-----------------------------------------------------------------------------
 void PathMatching::reset()
 {
   display_.clear();
   matched_points_.clear();
   // tf_.reset();
+
+  if (path_) {
+    display_.load_path(*path_);
+  }
 }
 
 //-----------------------------------------------------------------------------

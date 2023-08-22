@@ -37,8 +37,6 @@ public:
 
   void updateDisplay();
 
-  void resetMatching();
-
   virtual void reset() override;
 
   bool isMatching() const {return matched_points_.size();}
@@ -51,8 +49,6 @@ public:
 
   const std::string & getFrame() const {return path_frame_id_;}
   const Pose2D & getVehiclePose() const {return vehicle_pose_;}
-
-  // void resetCallback(const std_msgs::Bool::ConstPtr & msg);
 
   // void publishNearAnnotations(const PathMatchedPoint2D & point, const ros::Time & stamp);
 
@@ -80,7 +76,6 @@ protected:
   std::vector<PathMatchedPoint2D> matched_points_;
   size_t tracked_matched_point_index_;
   Pose2D vehicle_pose_;
-  // ros::Subscriber reset_sub_;
   // ros::Publisher annotations_pub_;
   // double annotation_dist_max_;
   // double annotation_dist_min_;
