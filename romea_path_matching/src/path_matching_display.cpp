@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//romea
+// romea
 #include "romea_path_matching/path_matching_display.hpp"
 
 
@@ -55,5 +55,4 @@ void PathMatchingDisplay::add_waypoint_(const PathWayPoint2D & way_point)
   pt.z = 0.1;
 }
 
-
-}
+}  // namespace romea

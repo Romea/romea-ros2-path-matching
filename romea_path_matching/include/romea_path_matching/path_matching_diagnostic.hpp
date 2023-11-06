@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __DiagnosticPathMatching_HPP__
-#define __DiagnosticPathMatching_HPP__
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_HPP_
 
+// std
+#include <string>
+
+// romea
 #include "path_matching_diagnostic_base.hpp"
 
 namespace romea
@@ -23,7 +27,7 @@ namespace romea
 class DiagnosticPathStatus : public diagnostic_updater::DiagnosticTask
 {
 public:
-  DiagnosticPathStatus(const std::string & name);
+  explicit DiagnosticPathStatus(const std::string & name);
 
   void setPathFilename(const std::string & filename);
 
@@ -33,7 +37,7 @@ public:
 
   bool getStatus() const;
 
-  virtual void run(diagnostic_updater::DiagnosticStatusWrapper & stat) override;
+  void run(diagnostic_updater::DiagnosticStatusWrapper & stat) override;
 
 private:
   std::string filename_;
@@ -44,13 +48,13 @@ private:
 class DiagnosticLookupTransformStatus : public diagnostic_updater::DiagnosticTask
 {
 public:
-  DiagnosticLookupTransformStatus(const std::string & name);
+  explicit DiagnosticLookupTransformStatus(const std::string & name);
 
   void setStatus(const bool & status);
 
   bool getStatus() const;
 
-  virtual void run(diagnostic_updater::DiagnosticStatusWrapper & stat) override;
+  void run(diagnostic_updater::DiagnosticStatusWrapper & stat) override;
 
 private:
   bool status_;
@@ -59,7 +63,6 @@ private:
 
 class PathMatchingDiagnostic : public PathMatchingDiagnosticBase
 {
-
 public:
   PathMatchingDiagnostic();
 
@@ -69,9 +72,8 @@ public:
 private:
   DiagnosticPathStatus path_status_diagnostic_;
   DiagnosticLookupTransformStatus lookup_transform_status_diagnostic_;
-
 };
 
-}
+}  // namespace romea
 
-#endif
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_HPP_

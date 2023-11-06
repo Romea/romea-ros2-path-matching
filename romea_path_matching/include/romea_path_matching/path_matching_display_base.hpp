@@ -12,15 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PathMatchingDisplayBase_HPP
-#define PathMatchingDisplayBase_HPP
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
 
-#include <romea_core_path/PathSection2D.hpp>
-#include <romea_core_path/PathWayPoint2D.hpp>
-#include <romea_core_common/geometry/Pose2D.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <visualization_msgs/msg/marker_array.hpp>
+// std
+#include <string>
+
+// ros
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
+
+// romea
+#include "romea_core_path/PathSection2D.hpp"
+#include "romea_core_path/PathWayPoint2D.hpp"
+#include "romea_core_common/geometry/Pose2D.hpp"
+
 
 namespace romea
 {
@@ -56,4 +63,5 @@ protected:
 };
 
 }  // namespace romea
-#endif
+
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_

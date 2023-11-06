@@ -12,20 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//romea
+// std
+#include <optional>
+
+// romea
+#include "romea_common_utils/conversions/pose_and_twist3d_conversions.hpp"
+#include "romea_common_utils/conversions/twist2d_conversions.hpp"
+#include "romea_common_utils/params/node_parameters.hpp"
+#include "romea_core_common/geometry/PoseAndTwist3D.hpp"
+#include "romea_core_path/PathFile.hpp"
+#include "romea_core_path/PathMatching2D.hpp"
+#include "romea_path_utils/path_matching_info_conversions.hpp"
 #include "romea_path_matching/path_matching.hpp"
 
-#include <romea_common_utils/conversions/pose_and_twist3d_conversions.hpp>
-#include <romea_common_utils/conversions/twist2d_conversions.hpp>
-#include <romea_common_utils/params/node_parameters.hpp>
-#include <romea_core_common/geometry/PoseAndTwist3D.hpp>
-#include <romea_core_path/PathFile.hpp>
-#include <romea_core_path/PathMatching2D.hpp>
-#include <romea_path_utils/path_matching_info_conversions.hpp>
 // #include "uturn_generator.hpp"
 // #include <romea_path_msgs/PathAnnotations.h>
 
-#include <optional>
 
 namespace romea
 {
@@ -81,7 +83,8 @@ try
   diagnostics_.init(shared_from_this());
   // comparator_.init();
   // uturn_generator_.init();
-  // reset_sub_ = private_nh.subscribe<std_msgs::Bool>("reset", 1, &PathMatching::resetCallback, this);
+  // reset_sub_ = private_nh.subscribe<std_msgs::Bool>(
+  //    "reset", 1, &PathMatching::resetCallback, this);
   // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
 
   if (autostart_) {
@@ -92,7 +95,6 @@ try
 
   RCLCPP_INFO(logger_, "configured");
   return CallbackReturn::SUCCESS;
-
 } catch (const std::runtime_error & e) {
   RCLCPP_ERROR_STREAM(logger_, "configuration failed: " << e.what());
   return CallbackReturn::FAILURE;
@@ -247,7 +249,9 @@ size_t PathMatching::getCurrentSectionIndex() const
 }
 
 //-----------------------------------------------------------------------------
-// void PathMatching::publishNearAnnotations(const PathMatchedPoint2D & point, const ros::Time & stamp)
+// void PathMatching::publishNearAnnotations(
+//  const PathMatchedPoint2D & point,
+//  const ros::Time & stamp)
 // {
 //   romea_path_msgs::PathAnnotations msg;
 //   msg.header.stamp = stamp;

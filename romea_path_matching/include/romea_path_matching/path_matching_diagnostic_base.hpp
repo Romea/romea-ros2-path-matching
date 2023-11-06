@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __DiagnosticPathMatchingBase_HPP__
-#define __DiagnosticPathMatchingBase_HPP__
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_BASE_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_BASE_HPP_
 
-//ros
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
+// std
+#include <memory>
 
-//romea
-#include <romea_core_common/diagnostic/CheckupRate.hpp>
+// ros
+#include "diagnostic_updater/diagnostic_updater.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+
+// romea
+#include "romea_core_common/diagnostic/CheckupRate.hpp"
 
 namespace romea
 {
@@ -57,4 +60,4 @@ protected:
 
 }  // namespace romea
 
-#endif
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_BASE_HPP_

@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef romea_PathMatchingBase_HPP
-#define romea_PathMatchingBase_HPP
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_BASE_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_BASE_HPP_
 
-//ros
-#include <nav_msgs/msg/odometry.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
-#include <romea_path_msgs/msg/path_matching_info2_d.hpp>
-#include <std_srvs/srv/empty.hpp>
+// ros
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "std_srvs/srv/empty.hpp"
+
+// romea
+#include "romea_path_msgs/msg/path_matching_info2_d.hpp"
 
 namespace romea
 {
@@ -34,7 +36,7 @@ public:
   using ResetSrv = std_srvs::srv::Empty;
 
 public:
-  PathMatchingBase(const rclcpp::NodeOptions & options);
+  explicit PathMatchingBase(const rclcpp::NodeOptions & options);
 
   virtual ~PathMatchingBase() = default;
 
@@ -64,4 +66,5 @@ protected:
 };
 
 }  // namespace romea
-#endif
+
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_BASE_HPP_

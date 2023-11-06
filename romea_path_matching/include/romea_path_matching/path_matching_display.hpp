@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PathMatchingDisplay_HPP
-#define PathMatchingDisplay_HPP
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
 
-#include <romea_core_path/Path2D.hpp>
+// std
+#include <vector>
 
+// romea
+#include "romea_core_path/Path2D.hpp"
 #include "path_matching_display_base.hpp"
 
 namespace romea
@@ -36,4 +39,5 @@ protected:
 };
 
 }  // namespace romea
-#endif
+
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_

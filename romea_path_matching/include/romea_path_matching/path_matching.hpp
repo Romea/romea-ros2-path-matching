@@ -12,17 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PathMatching_HPP
-#define PathMatching_HPP
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
 
+// std
 #include <functional>
-#include <rclcpp/rclcpp.hpp>
-#include <romea_common_utils/deferred_call.hpp>
-#include <romea_core_common/geometry/Pose2D.hpp>
-#include <romea_core_common/geometry/Twist2D.hpp>
-#include <romea_core_path/Path2D.hpp>
-#include <romea_core_path/PathMatchedPoint2D.hpp>
-#include <romea_core_path/PathPosture2D.hpp>
+#include <memory>
+#include <string>
+#include <vector>
+
+// ros
+#include "rclcpp/rclcpp.hpp"
+
+// romea
+#include "romea_common_utils/deferred_call.hpp"
+#include "romea_core_common/geometry/Pose2D.hpp"
+#include "romea_core_common/geometry/Twist2D.hpp"
+#include "romea_core_path/Path2D.hpp"
+#include "romea_core_path/PathMatchedPoint2D.hpp"
+#include "romea_core_path/PathPosture2D.hpp"
 
 #include "path_matching_base.hpp"
 #include "path_matching_diagnostic.hpp"
@@ -39,7 +47,7 @@ private:
   using UpdateCb = std::function<void ()>;
 
 public:
-  PathMatching(const rclcpp::NodeOptions & options);
+  explicit PathMatching(const rclcpp::NodeOptions & options);
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
 
@@ -51,7 +59,7 @@ public:
 
   void updateDisplay();
 
-  virtual void reset() override;
+  void reset() override;
 
   bool isMatching() const {return matched_points_.size();}
 
@@ -100,4 +108,5 @@ protected:
 };
 
 }  // namespace romea
-#endif
+
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
