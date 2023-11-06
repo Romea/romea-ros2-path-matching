@@ -1,3 +1,17 @@
+// Copyright 2022 INRAE, French National Research Institute for Agriculture, Food and Environment
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 //romea
 #include "romea_path_matching/path_matching.hpp"
 
@@ -45,13 +59,14 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   declare_parameter("display", true, std::move(display_descr));
 
   if (autostart_) {
-    transition_call_ = deferred_call(*this, [this] { configure(); });
+    transition_call_ = deferred_call(*this, [this] {configure();});
   }
 }
 
 //-----------------------------------------------------------------------------
 PathMatching::CallbackReturn PathMatching::on_configure(const rclcpp_lifecycle::State & state)
-try {
+try
+{
   PathMatchingBase::on_configure(state);
 
   path_frame_id_ = romea::get_parameter<std::string>(shared_from_this(), "path_frame_id");
@@ -70,7 +85,7 @@ try {
   // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
 
   if (autostart_) {
-    transition_call_ = deferred_call(this, [this] { activate(); });
+    transition_call_ = deferred_call(this, [this] {activate();});
   }
 
   loadPath(path);
@@ -139,7 +154,7 @@ bool PathMatching::tryToEvaluateMapToPathTransformation_(
 //-----------------------------------------------------------------------------
 void PathMatching::processOdom_(const Odometry & msg)
 {
-  if (!is_active_) return;
+  if (!is_active_) {return;}
 
   PoseAndTwist3D enuPoseAndBodyTwist3D;
   to_romea(msg.pose, enuPoseAndBodyTwist3D.pose);
@@ -153,9 +168,10 @@ void PathMatching::processOdom_(const Odometry & msg)
     bool matching_status = tryToMatchOnPath_(vehicle_pose_, vehicle_twist);
 
     if (matching_status) {
-      match_pub_->publish(to_ros_msg(
-        msg.header.stamp, matched_points_, tracked_matched_point_index_, path_->getLength(),
-        vehicle_twist));
+      match_pub_->publish(
+        to_ros_msg(
+          msg.header.stamp, matched_points_, tracked_matched_point_index_, path_->getLength(),
+          vehicle_twist));
 
       // const auto & matched_point = matched_points_[tracked_matched_point_index_];
       // publishNearAnnotations(matched_point, msg.header.stamp);
