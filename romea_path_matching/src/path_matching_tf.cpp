@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// std
+#include <memory>
+#include <string>
+
 // ros
 #include "tf2_ros/buffer.h"
 

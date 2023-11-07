@@ -13,7 +13,10 @@
 // limitations under the License.
 
 // std
+#include <memory>
 #include <optional>
+#include <utility>
+#include <string>
 
 // romea
 #include "romea_common_utils/conversions/pose_and_twist3d_conversions.hpp"

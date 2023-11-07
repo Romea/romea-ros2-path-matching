@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// std
+#include <string>
+
+// romea
 #include "romea_path_matching/path_matching_diagnostic.hpp"
 
 namespace romea
