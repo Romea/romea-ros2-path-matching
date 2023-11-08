@@ -76,9 +76,6 @@ public:
 protected:
   void processOdom_(const Odometry & msg) override;
 
-  bool tryToEvaluateMapToPathTransformation_(
-    const rclcpp::Time & stamp, const std::string & map_frame_id);
-
   bool tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D & vehicle_twist);
 
   void displayResults_(const Pose2D & vehicle_pose);
