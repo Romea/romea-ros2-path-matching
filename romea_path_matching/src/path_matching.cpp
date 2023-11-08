@@ -46,8 +46,8 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   logger_(rclcpp::get_logger("path_matching"))
 {
   rcl_interfaces::msg::ParameterDescriptor path_frame_descr;
-  path_frame_descr.description = "The frame is used to publish a transform from the world frame";
-  declare_parameter("path_frame_id", "path", std::move(path_frame_descr));
+  path_frame_descr.description = "Frame used to publish path messages";
+  declare_parameter("path_frame_id", "map", std::move(path_frame_descr));
 
   rcl_interfaces::msg::ParameterDescriptor path_descr;
   path_descr.description = "Filename of the path to follow";
