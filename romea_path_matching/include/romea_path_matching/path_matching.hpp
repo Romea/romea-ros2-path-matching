@@ -35,7 +35,6 @@
 #include "path_matching_base.hpp"
 #include "path_matching_diagnostic.hpp"
 #include "path_matching_display.hpp"
-#include "path_matching_tf.hpp"
 // #include "std_msgs/Bool.h"
 
 namespace romea
@@ -85,7 +84,6 @@ protected:
   void displayResults_(const Pose2D & vehicle_pose);
 
 protected:
-  PathMatchingTf tf_;
   PathMatchingDisplay display_;
   PathMatchingDiagnostic diagnostics_;
   std::string path_frame_id_;
