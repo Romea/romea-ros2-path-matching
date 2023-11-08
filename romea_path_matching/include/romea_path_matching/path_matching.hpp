@@ -35,7 +35,6 @@
 #include "path_matching_base.hpp"
 #include "path_matching_diagnostic.hpp"
 #include "path_matching_display.hpp"
-#include "path_matching_tf.hpp"
 // #include "std_msgs/Bool.h"
 
 namespace romea
@@ -77,15 +76,11 @@ public:
 protected:
   void processOdom_(const Odometry & msg) override;
 
-  bool tryToEvaluateMapToPathTransformation_(
-    const rclcpp::Time & stamp, const std::string & map_frame_id);
-
   bool tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D & vehicle_twist);
 
   void displayResults_(const Pose2D & vehicle_pose);
 
 protected:
-  PathMatchingTf tf_;
   PathMatchingDisplay display_;
   PathMatchingDiagnostic diagnostics_;
   std::string path_frame_id_;

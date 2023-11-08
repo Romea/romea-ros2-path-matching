@@ -39,7 +39,6 @@ namespace romea
 ////////////////////////////////////////////////////////////////////////////////
 PathMatching::PathMatching(const rclcpp::NodeOptions & options)
 : PathMatchingBase(options),
-  // comparator_(*this, tf_.getTfBuffer()),
   // uturn_generator_(*this),
   path_(nullptr),
   matched_points_(),
@@ -82,7 +81,6 @@ try
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
 
   display_.init(shared_from_this(), path_frame_id_);
-  tf_.init(shared_from_this(), path_frame_id_);
   diagnostics_.init(shared_from_this());
   // comparator_.init();
   // uturn_generator_.init();
@@ -125,7 +123,6 @@ void PathMatching::loadPath(const std::string & filename)
   PathFile path_file(filename);
   path_ = std::make_unique<Path2D>(
     path_file.getWayPoints(), interpolation_window_length_, path_file.getAnnotations());
-  tf_.setWorldToPathTransformation(path_file.getWorldToPathTransformation());
   display_.load_path(*path_);
   diagnostics_.update_path_status(filename, true);
 }
@@ -140,20 +137,10 @@ void PathMatching::reset()
 {
   display_.clear();
   matched_points_.clear();
-  // tf_.reset();
 
   if (path_) {
     display_.load_path(*path_);
   }
-}
-
-//-----------------------------------------------------------------------------
-bool PathMatching::tryToEvaluateMapToPathTransformation_(
-  const rclcpp::Time & stamp, const std::string & map_frame_id)
-{
-  bool status = tf_.evaluateMapToPathTransformation(stamp, map_frame_id);
-  diagnostics_.update_lookup_transform_status(status);
-  return status;
 }
 
 //-----------------------------------------------------------------------------
@@ -166,34 +153,30 @@ void PathMatching::processOdom_(const Odometry & msg)
   to_romea(msg.twist, enuPoseAndBodyTwist3D.twist);
   diagnostics_.update_odom_rate(to_romea_duration(msg.header.stamp));
 
-  if (tryToEvaluateMapToPathTransformation_(msg.header.stamp, msg.header.frame_id)) {
-    const auto & map_to_path = tf_.getMapToPathTransformation();
-    vehicle_pose_ = toPose2D(map_to_path * enuPoseAndBodyTwist3D.pose);
-    auto vehicle_twist = toTwist2D(enuPoseAndBodyTwist3D.twist);
-    bool matching_status = tryToMatchOnPath_(vehicle_pose_, vehicle_twist);
+  vehicle_pose_ = toPose2D(enuPoseAndBodyTwist3D.pose);
+  auto vehicle_twist = toTwist2D(enuPoseAndBodyTwist3D.twist);
+  bool matching_status = tryToMatchOnPath_(vehicle_pose_, vehicle_twist);
 
-    if (matching_status) {
-      match_pub_->publish(
-        to_ros_msg(
-          msg.header.stamp, matched_points_, tracked_matched_point_index_, path_->getLength(),
-          vehicle_twist));
+  if (matching_status) {
+    match_pub_->publish(
+      to_ros_msg(
+        msg.header.stamp, matched_points_, tracked_matched_point_index_, path_->getLength(),
+        vehicle_twist));
 
-      // const auto & matched_point = matched_points_[tracked_matched_point_index_];
-      // publishNearAnnotations(matched_point, msg.header.stamp);
-    }
-
-    // force a diagnostic update when matching status changes
-    if (matching_status != previous_matching_status_) {
-      diagnostics_.publish();
-    }
-
-    tf_.publish();
-    if (display_activated_) {
-      displayResults_(vehicle_pose_);
-    }
-
-    previous_matching_status_ = matching_status;
+    // const auto & matched_point = matched_points_[tracked_matched_point_index_];
+    // publishNearAnnotations(matched_point, msg.header.stamp);
   }
+
+  // force a diagnostic update when matching status changes
+  if (matching_status != previous_matching_status_) {
+    diagnostics_.publish();
+  }
+
+  if (display_activated_) {
+    displayResults_(vehicle_pose_);
+  }
+
+  previous_matching_status_ = matching_status;
 }
 
 //-----------------------------------------------------------------------------
