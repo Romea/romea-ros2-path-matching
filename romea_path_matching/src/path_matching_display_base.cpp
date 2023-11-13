@@ -65,9 +65,9 @@ void PathMatchingDisplayBase::initMarkers(const std::string & path_frame_id)
   curve_marker_.color.b = .05;
   curve_marker_.color.a = 1.;
 
-  curve_marker_.scale.x = .1;
-  curve_marker_.scale.y = .1;
-  curve_marker_.scale.z = .1;
+  curve_marker_.scale.x = .12;
+  curve_marker_.scale.y = .12;
+  curve_marker_.scale.z = .12;
 }
 
 //-----------------------------------------------------------------------------
