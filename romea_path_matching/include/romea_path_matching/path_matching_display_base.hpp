@@ -60,6 +60,7 @@ protected:
   rclcpp_lifecycle::LifecyclePublisher<MarkerArray>::SharedPtr marker_pub_;
   Marker path_marker_;
   Marker curve_marker_;
+  Marker clear_marker_;
 };
 
 }  // namespace romea

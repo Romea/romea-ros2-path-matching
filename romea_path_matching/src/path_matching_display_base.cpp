@@ -68,6 +68,9 @@ void PathMatchingDisplayBase::initMarkers(const std::string & path_frame_id)
   curve_marker_.scale.x = .12;
   curve_marker_.scale.y = .12;
   curve_marker_.scale.z = .12;
+
+  clear_marker_.header.frame_id = path_frame_id;
+  clear_marker_.action = visualization_msgs::msg::Marker::DELETEALL;
 }
 
 //-----------------------------------------------------------------------------
@@ -98,6 +101,7 @@ void PathMatchingDisplayBase::load_curve(const PathCurve2D & path_curve)
 void PathMatchingDisplayBase::publish()
 {
   visualization_msgs::msg::MarkerArray markers;
+  markers.markers.push_back(clear_marker_);
   markers.markers.push_back(path_marker_);
   markers.markers.push_back(curve_marker_);
   marker_pub_->publish(std::move(markers));
