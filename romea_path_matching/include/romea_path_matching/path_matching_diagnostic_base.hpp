@@ -27,6 +27,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class PathMatchingDiagnosticBase
 {
@@ -38,7 +40,7 @@ public:
   virtual ~PathMatchingDiagnosticBase() = default;
 
   void init(rclcpp_lifecycle::LifecycleNode::SharedPtr node);
-  void update_odom_rate(const romea::Duration & duration);
+  void update_odom_rate(const core::Duration & duration);
   void update_matching_status(bool status);
   void publish();
 
@@ -48,7 +50,7 @@ private:
 
 protected:
   bool matching_status_ = false;
-  CheckupGreaterThanRate odom_rate_diagnostic_;
+  core::CheckupGreaterThanRate odom_rate_diagnostic_;
 
   diagnostic_updater::FunctionDiagnosticTask odom_rate_task_;
   diagnostic_updater::FunctionDiagnosticTask matching_task_;
@@ -58,6 +60,7 @@ protected:
   rclcpp::TimerBase::SharedPtr timer_;
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_BASE_HPP_

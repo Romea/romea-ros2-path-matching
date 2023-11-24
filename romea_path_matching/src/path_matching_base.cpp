@@ -25,6 +25,8 @@ const double PREDICTION_TIME_HORIZON = 0.5;
 
 namespace romea
 {
+namespace ros2
+{
 
 PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
 : rclcpp_lifecycle::LifecycleNode("path_matching", options),
@@ -85,4 +87,5 @@ void PathMatchingBase::reset_srv_callback_(
   reset();
 }
 
+}  // namespace ros2
 }  // namespace romea

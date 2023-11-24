@@ -26,6 +26,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class PathMatchingBase : public rclcpp_lifecycle::LifecycleNode
 {
@@ -65,6 +67,7 @@ protected:
   rclcpp::Service<ResetSrv>::SharedPtr reset_srv_;
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_BASE_HPP_

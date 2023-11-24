@@ -20,6 +20,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 //-----------------------------------------------------------------------------
 DiagnosticPathStatus::DiagnosticPathStatus(const std::string & name)
@@ -117,4 +119,5 @@ void PathMatchingDiagnostic::update_path_status(const std::string & filename, co
   path_status_diagnostic_.setStatus(isOpened);
 }
 
+}  // namespace ros2
 }  // namespace romea

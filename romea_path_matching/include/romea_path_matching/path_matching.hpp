@@ -39,6 +39,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class PathMatching : public PathMatchingBase
 {
@@ -62,23 +64,23 @@ public:
 
   bool isMatching() const {return matched_points_.size();}
 
-  const PathSection2D * getCurrentSection() const;
+  const core::PathSection2D * getCurrentSection() const;
   size_t getCurrentSectionIndex() const;
 
-  const Path2D & getPath() const {return *path_;}
-  Path2D & getPath() {return *path_;}
+  const core::Path2D & getPath() const {return *path_;}
+  core::Path2D & getPath() {return *path_;}
 
   const std::string & getFrame() const {return path_frame_id_;}
-  const Pose2D & getVehiclePose() const {return vehicle_pose_;}
+  const core::Pose2D & getVehiclePose() const {return vehicle_pose_;}
 
   // void publishNearAnnotations(const PathMatchedPoint2D & point, const ros::Time & stamp);
 
 protected:
   void processOdom_(const Odometry & msg) override;
 
-  bool tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D & vehicle_twist);
+  bool tryToMatchOnPath_(const core::Pose2D & vehicle_pose, const core::Twist2D & vehicle_twist);
 
-  void displayResults_(const Pose2D & vehicle_pose);
+  void displayResults_(const core::Pose2D & vehicle_pose);
 
 protected:
   PathMatchingDisplay display_;
@@ -89,10 +91,10 @@ protected:
   bool display_activated_;
 
   UpdateCb update_cb_;
-  std::unique_ptr<Path2D> path_;
-  std::vector<PathMatchedPoint2D> matched_points_;
+  std::unique_ptr<core::Path2D> path_;
+  std::vector<core::PathMatchedPoint2D> matched_points_;
   size_t tracked_matched_point_index_;
-  Pose2D vehicle_pose_;
+  core::Pose2D vehicle_pose_;
   // ros::Publisher annotations_pub_;
   // double annotation_dist_max_;
   // double annotation_dist_min_;
@@ -102,6 +104,7 @@ protected:
   std::unique_ptr<DeferredCall> transition_call_;
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_

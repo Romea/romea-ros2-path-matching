@@ -20,6 +20,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 //-----------------------------------------------------------------------------
 PathMatchingDiagnosticBase::PathMatchingDiagnosticBase()
@@ -36,6 +38,7 @@ PathMatchingDiagnosticBase::PathMatchingDiagnosticBase()
   composite_diagnostic_.addTask(&matching_task_);
 }
 
+//-----------------------------------------------------------------------------
 void PathMatchingDiagnosticBase::init(rclcpp_lifecycle::LifecycleNode::SharedPtr node)
 {
   updater_ = std::make_shared<diagnostic_updater::Updater>(node, 0.5);
@@ -44,7 +47,7 @@ void PathMatchingDiagnosticBase::init(rclcpp_lifecycle::LifecycleNode::SharedPtr
 }
 
 //-----------------------------------------------------------------------------
-void PathMatchingDiagnosticBase::update_odom_rate(const romea::Duration & stamp)
+void PathMatchingDiagnosticBase::update_odom_rate(const core::Duration & stamp)
 {
   odom_rate_diagnostic_.evaluate(stamp);
 }
@@ -65,9 +68,10 @@ void PathMatchingDiagnosticBase::publish()
   }
 }
 
+//-----------------------------------------------------------------------------
 void PathMatchingDiagnosticBase::odom_rate_callback(StatusWrapper & stat)
 {
-  DiagnosticReport report = odom_rate_diagnostic_.getReport();
+  core::DiagnosticReport report = odom_rate_diagnostic_.getReport();
   const auto & [level, msg] = report.diagnostics.front();
   stat.summary(static_cast<unsigned char>(level), msg);
   for (const auto & [name, value] : report.info) {
@@ -75,6 +79,7 @@ void PathMatchingDiagnosticBase::odom_rate_callback(StatusWrapper & stat)
   }
 }
 
+//-----------------------------------------------------------------------------
 void PathMatchingDiagnosticBase::matching_callback(StatusWrapper & stat)
 {
   if (matching_status_) {
@@ -85,4 +90,5 @@ void PathMatchingDiagnosticBase::matching_callback(StatusWrapper & stat)
   stat.add("matching", matching_status_);
 }
 
+}  // namespace ros2
 }  // namespace romea

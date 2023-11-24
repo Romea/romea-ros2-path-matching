@@ -31,6 +31,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class PathMatchingDisplayBase
 {
@@ -45,7 +47,7 @@ public:
 
   void init(rclcpp_lifecycle::LifecycleNode::SharedPtr node, const std::string & path_frame_id);
 
-  void load_curve(const PathCurve2D & path_curve);
+  void load_curve(const core::PathCurve2D & path_curve);
 
   void clear();
 
@@ -63,6 +65,7 @@ protected:
   Marker clear_marker_;
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_

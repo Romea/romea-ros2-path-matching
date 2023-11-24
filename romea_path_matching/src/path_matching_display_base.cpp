@@ -22,6 +22,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 PathMatchingDisplayBase::PathMatchingDisplayBase()
 {
@@ -81,7 +83,7 @@ void PathMatchingDisplayBase::clear()
 }
 
 //-----------------------------------------------------------------------------
-void PathMatchingDisplayBase::load_curve(const PathCurve2D & path_curve)
+void PathMatchingDisplayBase::load_curve(const core::PathCurve2D & path_curve)
 {
   double ss = path_curve.getCurvilinearAbscissaInterval().lower();
   double ds = (path_curve.getCurvilinearAbscissaInterval().upper() - ss) / 30.;
@@ -107,4 +109,5 @@ void PathMatchingDisplayBase::publish()
   marker_pub_->publish(std::move(markers));
 }
 
+}  // namespace ros2
 }  // namespace romea

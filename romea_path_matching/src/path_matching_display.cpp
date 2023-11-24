@@ -18,6 +18,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 void PathMatchingDisplay::load_waypoints(const WayPoints & path_way_points)
 {
@@ -30,7 +32,7 @@ void PathMatchingDisplay::load_waypoints(const WayPoints & path_way_points)
   }
 }
 
-void PathMatchingDisplay::load_path(const Path2D & path)
+void PathMatchingDisplay::load_path(const core::Path2D & path)
 {
   path_marker_.points.clear();
 
@@ -47,7 +49,7 @@ void PathMatchingDisplay::load_path(const Path2D & path)
   }
 }
 
-void PathMatchingDisplay::add_waypoint_(const PathWayPoint2D & way_point)
+void PathMatchingDisplay::add_waypoint_(const core::PathWayPoint2D & way_point)
 {
   auto & pt = path_marker_.points.emplace_back();
   pt.x = way_point.position.x();
@@ -55,4 +57,5 @@ void PathMatchingDisplay::add_waypoint_(const PathWayPoint2D & way_point)
   pt.z = 0.1;
 }
 
+}  // namespace ros2
 }  // namespace romea

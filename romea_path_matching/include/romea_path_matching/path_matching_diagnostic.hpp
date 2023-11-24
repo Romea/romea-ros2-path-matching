@@ -23,6 +23,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class DiagnosticPathStatus : public diagnostic_updater::DiagnosticTask
 {
@@ -74,6 +76,7 @@ private:
   DiagnosticLookupTransformStatus lookup_transform_status_diagnostic_;
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DIAGNOSTIC_HPP_

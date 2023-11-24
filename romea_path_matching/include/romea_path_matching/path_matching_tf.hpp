@@ -31,6 +31,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class PathMatchingTf
 {
@@ -68,6 +70,7 @@ private:
   rclcpp::Logger logger_;
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_TF_HPP_

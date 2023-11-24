@@ -34,6 +34,8 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,9 +75,9 @@ try
 {
   PathMatchingBase::on_configure(state);
 
-  path_frame_id_ = romea::get_parameter<std::string>(shared_from_this(), "path_frame_id");
-  std::string path = romea::get_parameter<std::string>(shared_from_this(), "path");
-  display_activated_ = romea::get_parameter<bool>(shared_from_this(), "display");
+  path_frame_id_ = romea::ros2::get_parameter<std::string>(shared_from_this(), "path_frame_id");
+  std::string path = romea::ros2::get_parameter<std::string>(shared_from_this(), "path");
+  display_activated_ = romea::ros2::get_parameter<bool>(shared_from_this(), "display");
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
@@ -120,8 +122,8 @@ PathMatching::CallbackReturn PathMatching::on_deactivate(const rclcpp_lifecycle:
 //-----------------------------------------------------------------------------
 void PathMatching::loadPath(const std::string & filename)
 {
-  PathFile path_file(filename);
-  path_ = std::make_unique<Path2D>(
+  core::PathFile path_file(filename);
+  path_ = std::make_unique<core::Path2D>(
     path_file.getWayPoints(), interpolation_window_length_, path_file.getAnnotations());
   display_.load_path(*path_);
   diagnostics_.update_path_status(filename, true);
@@ -148,19 +150,22 @@ void PathMatching::processOdom_(const Odometry & msg)
 {
   if (!is_active_) {return;}
 
-  PoseAndTwist3D enuPoseAndBodyTwist3D;
+  core::PoseAndTwist3D enuPoseAndBodyTwist3D;
   to_romea(msg.pose, enuPoseAndBodyTwist3D.pose);
   to_romea(msg.twist, enuPoseAndBodyTwist3D.twist);
   diagnostics_.update_odom_rate(to_romea_duration(msg.header.stamp));
 
-  vehicle_pose_ = toPose2D(enuPoseAndBodyTwist3D.pose);
-  auto vehicle_twist = toTwist2D(enuPoseAndBodyTwist3D.twist);
+  vehicle_pose_ = core::toPose2D(enuPoseAndBodyTwist3D.pose);
+  auto vehicle_twist = core::toTwist2D(enuPoseAndBodyTwist3D.twist);
   bool matching_status = tryToMatchOnPath_(vehicle_pose_, vehicle_twist);
 
   if (matching_status) {
     match_pub_->publish(
       to_ros_msg(
-        msg.header.stamp, matched_points_, tracked_matched_point_index_, path_->getLength(),
+        msg.header.stamp,
+        matched_points_,
+        tracked_matched_point_index_,
+        path_->getLength(),
         vehicle_twist));
 
     // const auto & matched_point = matched_points_[tracked_matched_point_index_];
@@ -180,7 +185,9 @@ void PathMatching::processOdom_(const Odometry & msg)
 }
 
 //-----------------------------------------------------------------------------
-bool PathMatching::tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D & vehicle_twist)
+bool PathMatching::tryToMatchOnPath_(
+  const core::Pose2D & vehicle_pose,
+  const core::Twist2D & vehicle_twist)
 {
   double vehicle_speed = vehicle_twist.linearSpeeds.x();
 
@@ -203,7 +210,7 @@ bool PathMatching::tryToMatchOnPath_(const Pose2D & vehicle_pose, const Twist2D 
 }
 
 //-----------------------------------------------------------------------------
-void PathMatching::displayResults_(const Pose2D & /*vehicle_pose*/)
+void PathMatching::displayResults_(const core::Pose2D & /*vehicle_pose*/)
 {
   if (!matched_points_.empty()) {
     const auto & section =
@@ -216,7 +223,7 @@ void PathMatching::displayResults_(const Pose2D & /*vehicle_pose*/)
 }
 
 //-----------------------------------------------------------------------------
-const PathSection2D * PathMatching::getCurrentSection() const
+const core::PathSection2D * PathMatching::getCurrentSection() const
 {
   if (matched_points_.size()) {
     size_t section_index = matched_points_[tracked_matched_point_index_].sectionIndex;
@@ -267,7 +274,8 @@ size_t PathMatching::getCurrentSectionIndex() const
 //   }
 // }
 
+}  // namespace ros2
 }  // namespace romea
 
 #include "rclcpp_components/register_node_macro.hpp"
-RCLCPP_COMPONENTS_REGISTER_NODE(romea::PathMatching)
+RCLCPP_COMPONENTS_REGISTER_NODE(romea::ros2::PathMatching)

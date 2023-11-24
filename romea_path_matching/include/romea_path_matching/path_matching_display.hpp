@@ -24,20 +24,23 @@
 
 namespace romea
 {
+namespace ros2
+{
 
 class PathMatchingDisplay : public PathMatchingDisplayBase
 {
 public:
-  using WayPoints = std::vector<std::vector<PathWayPoint2D>>;
+  using WayPoints = std::vector<std::vector<core::PathWayPoint2D>>;
 
 public:
   void load_waypoints(const WayPoints & path_way_points);
-  void load_path(const Path2D & path);
+  void load_path(const core::Path2D & path);
 
 protected:
-  void add_waypoint_(const PathWayPoint2D & point);
+  void add_waypoint_(const core::PathWayPoint2D & point);
 };
 
+}  // namespace ros2
 }  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_

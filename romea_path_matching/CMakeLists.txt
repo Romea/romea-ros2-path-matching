@@ -55,7 +55,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN "romea::PathMatching"
+  PLUGIN "romea::ros2::PathMatching"
   EXECUTABLE path_matching_node
 )
 
