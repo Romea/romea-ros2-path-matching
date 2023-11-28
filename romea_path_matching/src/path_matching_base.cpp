@@ -29,7 +29,7 @@ namespace ros2
 {
 
 PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
-: rclcpp_lifecycle::LifecycleNode("path_matching", options),
+: node_(std::make_shared<rclcpp_lifecycle::LifecycleNode>("path_matching", options)),
   prediction_time_horizon_(0),
   maximal_research_radius_(0),
   interpolation_window_length_(0)
@@ -38,31 +38,39 @@ PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
   ParameterDescriptor radius_descr;
   radius_descr.description =
     "Maximal distance (in meters) of the robot to the path to accept a matching";
-  declare_parameter("maximal_research_radius", MAXIMAL_REASEARCH_RADIUS, radius_descr);
+  node_->declare_parameter("maximal_research_radius", MAXIMAL_REASEARCH_RADIUS, radius_descr);
 
   ParameterDescriptor iwl_descr;
   iwl_descr.description = "Length (in meters) of the piece of path used to compute interpolation";
-  declare_parameter("interpolation_window_length", INTERPOLATION_WINDOW_LENGTH, iwl_descr);
+  node_->declare_parameter("interpolation_window_length", INTERPOLATION_WINDOW_LENGTH, iwl_descr);
 
   ParameterDescriptor pth_descr;
   pth_descr.description = "Time (in seconds) to look ahead on the path depending of robot speed";
-  declare_parameter("prediction_time_horizon", PREDICTION_TIME_HORIZON, pth_descr);
+  node_->declare_parameter("prediction_time_horizon", PREDICTION_TIME_HORIZON, pth_descr);
+
 }
+
+rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
+PathMatchingBase::get_node_base_interface() const
+{
+  return node_->get_node_base_interface();
+}
+
 
 PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lifecycle::State &)
 {
-  get_parameter<double>("maximal_research_radius", maximal_research_radius_);
-  get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
-  get_parameter<double>("interpolation_window_length", interpolation_window_length_);
+  node_->get_parameter<double>("maximal_research_radius", maximal_research_radius_);
+  node_->get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
+  node_->get_parameter<double>("interpolation_window_length", interpolation_window_length_);
 
-  match_pub_ = create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
+  match_pub_ = node_->create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
 
   using namespace std::placeholders;
   auto callback = std::bind(&PathMatchingBase::processOdom_, this, _1);
-  odom_sub_ = create_subscription<Odometry>("odom", best_effort(1), callback);
+  odom_sub_ = node_->create_subscription<Odometry>("odom", best_effort(1), callback);
 
   auto reset_callback = std::bind(&PathMatchingBase::reset_srv_callback_, this, _1, _2);
-  reset_srv_ = create_service<std_srvs::srv::Empty>("~/reset", reset_callback);
+  reset_srv_ = node_->create_service<std_srvs::srv::Empty>("~/reset", reset_callback);
 
   return CallbackReturn::SUCCESS;
 }

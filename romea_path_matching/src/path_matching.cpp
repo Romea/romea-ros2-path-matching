@@ -47,26 +47,40 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   tracked_matched_point_index_(0),
   logger_(rclcpp::get_logger("path_matching"))
 {
+  node_->register_on_configure(
+    std::bind(&PathMatching::on_configure, this, std::placeholders::_1));
+  node_->register_on_activate(
+    std::bind(&PathMatching::on_activate, this, std::placeholders::_1));
+  node_->register_on_deactivate(
+    std::bind(&PathMatching::on_deactivate, this, std::placeholders::_1));
+
   rcl_interfaces::msg::ParameterDescriptor path_frame_descr;
   path_frame_descr.description = "Frame used to publish path messages";
-  declare_parameter("path_frame_id", "map", std::move(path_frame_descr));
+  node_->declare_parameter("path_frame_id", "map", std::move(path_frame_descr));
 
   rcl_interfaces::msg::ParameterDescriptor path_descr;
   path_descr.description = "Filename of the path to follow";
-  declare_parameter("path", rclcpp::PARAMETER_STRING, std::move(path_descr));
+  node_->declare_parameter("path", rclcpp::PARAMETER_STRING, std::move(path_descr));
+
+  rcl_interfaces::msg::ParameterDescriptor autoconf_descr;
+  autoconf_descr.description = "Automatic configuration when the node is created";
+  node_->declare_parameter("autoconfigure", false, std::move(autoconf_descr));
 
   rcl_interfaces::msg::ParameterDescriptor autostart_descr;
-  autostart_descr.description = "Automatic configuration and activation when the node is started";
-  declare_parameter("autostart", false, std::move(autostart_descr));
-  get_parameter("autostart", autostart_);
+  autostart_descr.description = "Automatically start the robot when the node is configured";
+  node_->declare_parameter("autostart", false, std::move(autostart_descr));
 
   rcl_interfaces::msg::ParameterDescriptor display_descr;
   display_descr.description = "Enable the publication of rviz markers";
-  declare_parameter("display", true, std::move(display_descr));
+  node_->declare_parameter("display", true, std::move(display_descr));
 
-  if (autostart_) {
-    transition_call_ = deferred_call(*this, [this] {configure();});
+  if (get_parameter<bool>(node_, "autoconfigure")) {
+    auto state = node_->configure();
+    if (get_parameter<bool>(node_, "autostart") && state.label() == "inactive") {
+      node_->activate();
+    }
   }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -75,24 +89,20 @@ try
 {
   PathMatchingBase::on_configure(state);
 
-  path_frame_id_ = romea::ros2::get_parameter<std::string>(shared_from_this(), "path_frame_id");
-  std::string path = romea::ros2::get_parameter<std::string>(shared_from_this(), "path");
-  display_activated_ = romea::ros2::get_parameter<bool>(shared_from_this(), "display");
+  path_frame_id_ = get_parameter<std::string>(node_, "path_frame_id");
+  std::string path = get_parameter<std::string>(node_, "path");
+  display_activated_ = get_parameter<bool>(node_, "display");
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
 
-  display_.init(shared_from_this(), path_frame_id_);
-  diagnostics_.init(shared_from_this());
+  display_.init(node_, path_frame_id_);
+  diagnostics_.init(node_);
   // comparator_.init();
   // uturn_generator_.init();
   // reset_sub_ = private_nh.subscribe<std_msgs::Bool>(
   //    "reset", 1, &PathMatching::resetCallback, this);
   // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
-
-  if (autostart_) {
-    transition_call_ = deferred_call(this, [this] {activate();});
-  }
 
   loadPath(path);
 

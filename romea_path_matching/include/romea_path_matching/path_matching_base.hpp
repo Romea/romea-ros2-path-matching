@@ -29,7 +29,7 @@ namespace romea
 namespace ros2
 {
 
-class PathMatchingBase : public rclcpp_lifecycle::LifecycleNode
+class PathMatchingBase
 {
 public:
   using Odometry = nav_msgs::msg::Odometry;
@@ -42,13 +42,16 @@ public:
 
   virtual ~PathMatchingBase() = default;
 
+  rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
+  get_node_base_interface() const;
+
   virtual void reset() = 0;
 
-  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &);
 
-  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &);
 
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &);
 
 protected:
   virtual void processOdom_(const Odometry & msg) = 0;
@@ -62,6 +65,7 @@ protected:
 
   bool is_active_ = false;
 
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   rclcpp::Subscription<Odometry>::SharedPtr odom_sub_;
   rclcpp_lifecycle::LifecyclePublisher<PathMatchingInfo2D>::SharedPtr match_pub_;
   rclcpp::Service<ResetSrv>::SharedPtr reset_srv_;

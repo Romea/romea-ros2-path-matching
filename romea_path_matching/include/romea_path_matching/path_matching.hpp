@@ -50,11 +50,11 @@ private:
 public:
   explicit PathMatching(const rclcpp::NodeOptions & options);
 
-  CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_configure(const rclcpp_lifecycle::State &);
 
-  CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_activate(const rclcpp_lifecycle::State &);
 
-  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+  CallbackReturn on_deactivate(const rclcpp_lifecycle::State &);
 
   void loadPath(const std::string & filename);
 
