@@ -47,33 +47,16 @@ private:
   bool status_;
 };
 
-class DiagnosticLookupTransformStatus : public diagnostic_updater::DiagnosticTask
-{
-public:
-  explicit DiagnosticLookupTransformStatus(const std::string & name);
-
-  void setStatus(const bool & status);
-
-  bool getStatus() const;
-
-  void run(diagnostic_updater::DiagnosticStatusWrapper & stat) override;
-
-private:
-  bool status_;
-};
-
 
 class PathMatchingDiagnostic : public PathMatchingDiagnosticBase
 {
 public:
   PathMatchingDiagnostic();
 
-  void update_lookup_transform_status(const bool & status);
   void update_path_status(const std::string & filename, const bool & isOpened);
 
 private:
   DiagnosticPathStatus path_status_diagnostic_;
-  DiagnosticLookupTransformStatus lookup_transform_status_diagnostic_;
 };
 
 }  // namespace ros2

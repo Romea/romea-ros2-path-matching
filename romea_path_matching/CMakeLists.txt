@@ -28,7 +28,6 @@ find_package(diagnostic_updater REQUIRED)
 add_library(${PROJECT_NAME} SHARED
   src/path_matching_base.cpp
   src/path_matching.cpp
-  src/path_matching_tf.cpp
   src/path_matching_display.cpp
   src/path_matching_display_base.cpp
   src/path_matching_diagnostic.cpp
