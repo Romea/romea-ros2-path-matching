@@ -22,6 +22,7 @@
 #include "std_srvs/srv/empty.hpp"
 
 // romea
+#include "romea_common_utils/publishers/diagnostic_publisher.hpp"
 #include "romea_path_msgs/msg/path_matching_info2_d.hpp"
 
 namespace romea
@@ -54,21 +55,27 @@ public:
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State &);
 
 protected:
-  virtual void processOdom_(const Odometry & msg) = 0;
+  virtual void timer_callback_() = 0;
+
+  virtual void process_odom_(const Odometry & msg) = 0;
 
   void reset_srv_callback_(ResetSrv::Request::SharedPtr, ResetSrv::Response::SharedPtr);
 
 protected:
-  double prediction_time_horizon_;
-  double maximal_research_radius_;
-  double interpolation_window_length_;
+  double prediction_time_horizon_ = 0;
+  double maximal_research_radius_ = 0;
+  double interpolation_window_length_ = 0;
 
   bool is_active_ = false;
 
-  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_;
+  std::shared_ptr<rclcpp::TimerBase> timer_;
+
   rclcpp::Subscription<Odometry>::SharedPtr odom_sub_;
   rclcpp_lifecycle::LifecyclePublisher<PathMatchingInfo2D>::SharedPtr match_pub_;
   rclcpp::Service<ResetSrv>::SharedPtr reset_srv_;
+
+  std::shared_ptr<StampedPublisherBase<core::DiagnosticReport>> diagnostics_pub_;
 };
 
 }  // namespace ros2

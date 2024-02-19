@@ -3,9 +3,8 @@
 <package format="3">
   <name>romea_path_matching</name>
   <version>0.0.0</version>
-  <description>
-      ROS nodes to match the robot pose to a path represented by a list of geographic points.
-  </description>
+  <description> ROS nodes to match the robot pose to a path represented by a list of geographic
+    points. </description>
   <maintainer email="cyrille.pierre@inrae.fr">Cyrille Pierre</maintainer>
   <license>Apache License 2.0</license>
 
@@ -20,6 +19,7 @@
   <depend>romea_path_msgs</depend>
   <depend>romea_path_utils</depend>
   <depend>romea_core_path</depend>
+  <depend>romea_core_path_matching</depend>
   <depend>tf2_ros</depend>
   <depend>visualization_msgs</depend>
   <depend>std_srvs</depend>

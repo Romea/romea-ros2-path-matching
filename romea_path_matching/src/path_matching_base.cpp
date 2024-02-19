@@ -28,11 +28,9 @@ namespace romea
 namespace ros2
 {
 
+//-----------------------------------------------------------------------------
 PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
-: node_(std::make_shared<rclcpp_lifecycle::LifecycleNode>("path_matching", options)),
-  prediction_time_horizon_(0),
-  maximal_research_radius_(0),
-  interpolation_window_length_(0)
+: node_(std::make_shared<rclcpp_lifecycle::LifecycleNode>("path_matching", options))
 {
   using rcl_interfaces::msg::ParameterDescriptor;
   ParameterDescriptor radius_descr;
@@ -50,6 +48,7 @@ PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
 
 }
 
+//-----------------------------------------------------------------------------
 rclcpp::node_interfaces::NodeBaseInterface::SharedPtr
 PathMatchingBase::get_node_base_interface() const
 {
@@ -57,16 +56,22 @@ PathMatchingBase::get_node_base_interface() const
 }
 
 
+//-----------------------------------------------------------------------------
 PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lifecycle::State &)
 {
+
   node_->get_parameter<double>("maximal_research_radius", maximal_research_radius_);
   node_->get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
   node_->get_parameter<double>("interpolation_window_length", interpolation_window_length_);
 
+
   match_pub_ = node_->create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
 
+  diagnostics_pub_ = romea::ros2::make_diagnostic_publisher<romea::core::DiagnosticReport>(
+    node_, std::string(node_->get_namespace()) + "/" + std::string(node_->get_name()), 1.0);
+
   using namespace std::placeholders;
-  auto callback = std::bind(&PathMatchingBase::processOdom_, this, _1);
+  auto callback = std::bind(&PathMatchingBase::process_odom_, this, _1);
   odom_sub_ = node_->create_subscription<Odometry>("odom", best_effort(1), callback);
 
   auto reset_callback = std::bind(&PathMatchingBase::reset_srv_callback_, this, _1, _2);
@@ -75,20 +80,25 @@ PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lif
   return CallbackReturn::SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
 PathMatchingBase::CallbackReturn PathMatchingBase::on_activate(const rclcpp_lifecycle::State &)
 {
   match_pub_->on_activate();
+  diagnostics_pub_->activate();
   is_active_ = true;
   return CallbackReturn::SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
 PathMatchingBase::CallbackReturn PathMatchingBase::on_deactivate(const rclcpp_lifecycle::State &)
 {
   match_pub_->on_deactivate();
+  diagnostics_pub_->deactivate();
   is_active_ = false;
   return CallbackReturn::SUCCESS;
 }
 
+//-----------------------------------------------------------------------------
 void PathMatchingBase::reset_srv_callback_(
   ResetSrv::Request::SharedPtr, ResetSrv::Response::SharedPtr)
 {

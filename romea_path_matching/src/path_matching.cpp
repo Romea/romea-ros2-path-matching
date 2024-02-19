@@ -41,11 +41,7 @@ namespace ros2
 ////////////////////////////////////////////////////////////////////////////////
 PathMatching::PathMatching(const rclcpp::NodeOptions & options)
 : PathMatchingBase(options),
-  // uturn_generator_(*this),
-  path_(nullptr),
-  matched_points_(),
-  tracked_matched_point_index_(0),
-  logger_(rclcpp::get_logger("path_matching"))
+  path_matching_(nullptr)
 {
   node_->register_on_configure(
     std::bind(&PathMatching::on_configure, this, std::placeholders::_1));
@@ -95,21 +91,28 @@ try
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
+  path_matching_ = std::make_unique<core::PathMatching>(
+    path, maximal_research_radius_, interpolation_window_length_);
 
   display_.init(node_, path_frame_id_);
-  diagnostics_.init(node_);
+  display_.load_path(path_matching_->getPath());
+
+
   // comparator_.init();
   // uturn_generator_.init();
   // reset_sub_ = private_nh.subscribe<std_msgs::Bool>(
   //    "reset", 1, &PathMatching::resetCallback, this);
   // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
 
-  loadPath(path);
+  // loadPath(path);
 
-  RCLCPP_INFO(logger_, "configured");
+  auto callback = std::bind(&PathMatching::timer_callback_, this);
+  timer_ = node_->create_wall_timer(std::chrono::milliseconds(100), callback);
+
+  RCLCPP_INFO(node_->get_logger(), "configured");
   return CallbackReturn::SUCCESS;
 } catch (const std::runtime_error & e) {
-  RCLCPP_ERROR_STREAM(logger_, "configuration failed: " << e.what());
+  RCLCPP_ERROR_STREAM(node_->get_logger(), "configuration failed: " << e.what());
   return CallbackReturn::FAILURE;
 }
 
@@ -117,7 +120,7 @@ try
 PathMatching::CallbackReturn PathMatching::on_activate(const rclcpp_lifecycle::State & state)
 {
   CallbackReturn result = PathMatchingBase::on_activate(state);
-  RCLCPP_INFO(logger_, "activated");
+  RCLCPP_INFO(node_->get_logger(), "activated");
   return result;
 }
 
@@ -125,164 +128,63 @@ PathMatching::CallbackReturn PathMatching::on_activate(const rclcpp_lifecycle::S
 PathMatching::CallbackReturn PathMatching::on_deactivate(const rclcpp_lifecycle::State & state)
 {
   CallbackReturn result = PathMatchingBase::on_deactivate(state);
-  RCLCPP_INFO(logger_, "deactivated");
+  RCLCPP_INFO(node_->get_logger(), "deactivated");
   return result;
-}
-
-//-----------------------------------------------------------------------------
-void PathMatching::loadPath(const std::string & filename)
-{
-  core::PathFile path_file(filename);
-  path_ = std::make_unique<core::Path2D>(
-    path_file.getWayPoints(), interpolation_window_length_, path_file.getAnnotations());
-  display_.load_path(*path_);
-  diagnostics_.update_path_status(filename, true);
-}
-
-void PathMatching::updateDisplay()
-{
-  display_.load_path(*path_);
 }
 
 //-----------------------------------------------------------------------------
 void PathMatching::reset()
 {
   display_.clear();
-  matched_points_.clear();
-
-  if (path_) {
-    display_.load_path(*path_);
+  if (path_matching_) {
+    path_matching_->reset();
+    display_.load_path(path_matching_->getPath());
   }
 }
 
 //-----------------------------------------------------------------------------
-void PathMatching::processOdom_(const Odometry & msg)
+void PathMatching::process_odom_(const Odometry & msg)
 {
+
   if (!is_active_) {return;}
 
+  auto stamp = to_romea_duration(msg.header.stamp);
   core::PoseAndTwist3D enuPoseAndBodyTwist3D;
   to_romea(msg.pose, enuPoseAndBodyTwist3D.pose);
   to_romea(msg.twist, enuPoseAndBodyTwist3D.twist);
-  diagnostics_.update_odom_rate(to_romea_duration(msg.header.stamp));
 
-  vehicle_pose_ = core::toPose2D(enuPoseAndBodyTwist3D.pose);
+  const auto & path = path_matching_->getPath();
+  auto vehicle_pose = core::toPose2D(enuPoseAndBodyTwist3D.pose);
   auto vehicle_twist = core::toTwist2D(enuPoseAndBodyTwist3D.twist);
-  bool matching_status = tryToMatchOnPath_(vehicle_pose_, vehicle_twist);
 
-  if (matching_status) {
+  auto matched_point = path_matching_->match(
+    stamp, vehicle_pose, vehicle_twist, prediction_time_horizon_);
+
+
+  if (matched_point.has_value()) {
+
     match_pub_->publish(
-      to_ros_msg(
-        msg.header.stamp,
-        matched_points_,
-        tracked_matched_point_index_,
-        path_->getLength(),
-        vehicle_twist));
+      to_ros_msg(msg.header.stamp, {*matched_point}, 0, path.getLength(), vehicle_twist));
 
-    // const auto & matched_point = matched_points_[tracked_matched_point_index_];
     // publishNearAnnotations(matched_point, msg.header.stamp);
+
+    if (display_activated_) {
+      const auto & section = path.getSection(matched_point->sectionIndex);
+      const auto & curve = section.getCurve(matched_point->curveIndex);
+      display_.load_curve(curve);
+    }
   }
-
-  // force a diagnostic update when matching status changes
-  if (matching_status != previous_matching_status_) {
-    diagnostics_.publish();
-  }
-
-  if (display_activated_) {
-    displayResults_(vehicle_pose_);
-  }
-
-  previous_matching_status_ = matching_status;
-}
-
-//-----------------------------------------------------------------------------
-bool PathMatching::tryToMatchOnPath_(
-  const core::Pose2D & vehicle_pose,
-  const core::Twist2D & vehicle_twist)
-{
-  double vehicle_speed = vehicle_twist.linearSpeeds.x();
-
-  if (matched_points_.empty()) {
-    matched_points_ = match(
-      *path_, vehicle_pose, vehicle_speed, prediction_time_horizon_, maximal_research_radius_);
-
-  } else {
-    matched_points_ = match(
-      *path_, vehicle_pose, vehicle_speed, matched_points_[tracked_matched_point_index_], 2,
-      prediction_time_horizon_, maximal_research_radius_);
-  }
-
-  if (!matched_points_.empty()) {
-    tracked_matched_point_index_ = bestMatchedPointIndex(matched_points_, vehicle_speed);
-  }
-
-  diagnostics_.update_matching_status(!matched_points_.empty());
-  return !matched_points_.empty();
-}
-
-//-----------------------------------------------------------------------------
-void PathMatching::displayResults_(const core::Pose2D & /*vehicle_pose*/)
-{
-  if (!matched_points_.empty()) {
-    const auto & section =
-      path_->getSection(matched_points_[tracked_matched_point_index_].sectionIndex);
-    const auto & curve = section.getCurve(matched_points_[tracked_matched_point_index_].curveIndex);
-    display_.load_curve(curve);
-  }
-
   display_.publish();
 }
 
 //-----------------------------------------------------------------------------
-const core::PathSection2D * PathMatching::getCurrentSection() const
+void PathMatching::timer_callback_()
 {
-  if (matched_points_.size()) {
-    size_t section_index = matched_points_[tracked_matched_point_index_].sectionIndex;
-    return &path_->getSection(section_index);
-  }
-  return nullptr;
+  auto stamp = node_->get_clock()->now();
+  auto report = path_matching_->getReport(to_romea_duration(stamp));
+  diagnostics_pub_->publish(stamp, report);
 }
 
-//-----------------------------------------------------------------------------
-size_t PathMatching::getCurrentSectionIndex() const
-{
-  if (matched_points_.size()) {
-    return matched_points_[tracked_matched_point_index_].sectionIndex;
-  }
-  return path_->size();
-}
-
-//-----------------------------------------------------------------------------
-// void PathMatching::publishNearAnnotations(
-//  const PathMatchedPoint2D & point,
-//  const ros::Time & stamp)
-// {
-//   romea_path_msgs::PathAnnotations msg;
-//   msg.header.stamp = stamp;
-//   msg.header.frame_id = path_frame_id_;
-//
-//   const auto & annotations = path_->getAnnotations();
-//   // auto annotation_it = annotations.lower_bound(point.globalIndex);
-//   auto annotation_it = begin(annotations);
-//   double abscissa_max = point.frenetPose.curvilinearAbscissa + annotation_dist_max_;
-//   double abscissa_min = point.frenetPose.curvilinearAbscissa + annotation_dist_min_;
-//
-//   while (annotation_it != end(annotations)) {
-//     const auto & annotation = annotation_it->second;
-//     if (annotation.abscissa < abscissa_max && annotation.abscissa > abscissa_min) {
-//       auto & new_a = msg.annotations.emplace_back();
-//       new_a.type = annotation.type;
-//       new_a.value = annotation.value;
-//       new_a.curvilinear_abcissa = annotation.abscissa;
-//       new_a.curvilinear_distance = annotation.abscissa - point.frenetPose.curvilinearAbscissa;
-//     }
-//
-//     ++annotation_it;
-//   }
-//
-//   if (!annotations.empty()) {
-//     annotations_pub_.publish(msg);
-//   }
-// }
 
 }  // namespace ros2
 }  // namespace romea
