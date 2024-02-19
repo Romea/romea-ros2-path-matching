@@ -12,9 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// std
+#include <memory>
+#include <string>
+
+// romea
+#include "romea_common_utils/qos.hpp"
+
+// local
 #include "romea_path_matching/path_matching_base.hpp"
 
-#include <romea_common_utils/qos.hpp>
 
 namespace
 {
@@ -45,7 +52,6 @@ PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
   ParameterDescriptor pth_descr;
   pth_descr.description = "Time (in seconds) to look ahead on the path depending of robot speed";
   node_->declare_parameter("prediction_time_horizon", PREDICTION_TIME_HORIZON, pth_descr);
-
 }
 
 //-----------------------------------------------------------------------------
@@ -59,11 +65,9 @@ PathMatchingBase::get_node_base_interface() const
 //-----------------------------------------------------------------------------
 PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lifecycle::State &)
 {
-
   node_->get_parameter<double>("maximal_research_radius", maximal_research_radius_);
   node_->get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
   node_->get_parameter<double>("interpolation_window_length", interpolation_window_length_);
-
 
   match_pub_ = node_->create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
 

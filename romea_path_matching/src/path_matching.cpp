@@ -76,7 +76,6 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
       node_->activate();
     }
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -145,7 +144,6 @@ void PathMatching::reset()
 //-----------------------------------------------------------------------------
 void PathMatching::process_odom_(const Odometry & msg)
 {
-
   if (!is_active_) {return;}
 
   auto stamp = to_romea_duration(msg.header.stamp);
@@ -160,9 +158,7 @@ void PathMatching::process_odom_(const Odometry & msg)
   auto matched_point = path_matching_->match(
     stamp, vehicle_pose, vehicle_twist, prediction_time_horizon_);
 
-
   if (matched_point.has_value()) {
-
     match_pub_->publish(
       to_ros_msg(msg.header.stamp, {*matched_point}, 0, path.getLength(), vehicle_twist));
 

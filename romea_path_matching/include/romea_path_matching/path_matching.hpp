@@ -27,7 +27,7 @@
 // romea
 #include "romea_core_path_matching/PathMatching.hpp"
 
-//local
+// local
 #include "path_matching_base.hpp"
 #include "path_matching_display.hpp"
 

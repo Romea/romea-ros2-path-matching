@@ -15,6 +15,9 @@
 #ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_BASE_HPP_
 #define ROMEA_PATH_MATCHING__PATH_MATCHING_BASE_HPP_
 
+// std
+#include <memory>
+
 // ros
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
