@@ -3,9 +3,13 @@ repositories:
     type: git
     url: git@gitlab-ssh.irstea.fr:romea_core/romea_common.git
     version: devel
-  romea_core/romea_gps:
+  romea_core/romea_core_path:
     type: git
     url: git@gitlab-ssh.irstea.fr:romea_core/romea_path.git
+    version: devel
+  romea_core/romea_core_path_matching:
+    type: git
+    url: git@gitlab-ssh.irstea.fr:romea_core/romea_path_matching.git
     version: devel
 
   romea_ros2/tools/romea_common:
