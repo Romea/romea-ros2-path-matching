@@ -155,18 +155,18 @@ void PathMatching::process_odom_(const Odometry & msg)
   auto vehicle_pose = core::toPose2D(enuPoseAndBodyTwist3D.pose);
   auto vehicle_twist = core::toTwist2D(enuPoseAndBodyTwist3D.twist);
 
-  auto matched_point = path_matching_->match(
+  auto matched_points = path_matching_->match(
     stamp, vehicle_pose, vehicle_twist, prediction_time_horizon_);
 
-  if (matched_point.has_value()) {
+  if (!matched_points.empty()) {
     match_pub_->publish(
-      to_ros_msg(msg.header.stamp, {*matched_point}, 0, path.getLength(), vehicle_twist));
+      to_ros_msg(msg.header.stamp, matched_points, 0, path.getLength(), vehicle_twist));
 
     // publishNearAnnotations(matched_point, msg.header.stamp);
 
     if (display_activated_) {
-      const auto & section = path.getSection(matched_point->sectionIndex);
-      const auto & curve = section.getCurve(matched_point->curveIndex);
+      const auto & section = path.getSection(matched_points[0].sectionIndex);
+      const auto & curve = section.getCurve(matched_points[0].curveIndex);
       display_.load_curve(curve);
     }
   }
