@@ -22,6 +22,7 @@
 #include "romea_common_utils/conversions/pose_and_twist3d_conversions.hpp"
 #include "romea_common_utils/conversions/twist2d_conversions.hpp"
 #include "romea_common_utils/params/node_parameters.hpp"
+#include "romea_common_utils/params/geodesy_parameters.hpp"
 #include "romea_core_common/geometry/PoseAndTwist3D.hpp"
 #include "romea_core_path/PathFile.hpp"
 #include "romea_core_path/PathMatching2D.hpp"
@@ -70,6 +71,8 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   display_descr.description = "Enable the publication of rviz markers";
   node_->declare_parameter("display", true, std::move(display_descr));
 
+  declare_geodetic_coordinates_parameter(node_, "wgs84_anchor");
+
   if (get_parameter<bool>(node_, "autoconfigure")) {
     auto state = node_->configure();
     if (get_parameter<bool>(node_, "autostart") && state.label() == "inactive") {
@@ -84,14 +87,15 @@ try
 {
   PathMatchingBase::on_configure(state);
 
+  auto path = get_parameter<std::string>(node_, "path");
   path_frame_id_ = get_parameter<std::string>(node_, "path_frame_id");
-  std::string path = get_parameter<std::string>(node_, "path");
+  auto wgs84_anchor = get_geodetic_coordinates_parameter(node_, "wgs84_anchor");
   display_activated_ = get_parameter<bool>(node_, "display");
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
   path_matching_ = std::make_unique<core::PathMatching>(
-    path, maximal_research_radius_, interpolation_window_length_);
+    path, wgs84_anchor, maximal_research_radius_, interpolation_window_length_);
 
   display_.init(node_, path_frame_id_);
   display_.load_path(path_matching_->getPath());
