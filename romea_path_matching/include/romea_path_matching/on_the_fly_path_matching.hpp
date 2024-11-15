@@ -64,4 +64,4 @@ protected:
 }  // namespace ros2
 }  // namespace romea
 
-#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
+#endif  // ROMEA_PATH_MATCHING__ON_THE_FLY_PATH_MATCHING_HPP_

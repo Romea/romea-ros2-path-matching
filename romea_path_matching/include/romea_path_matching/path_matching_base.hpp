@@ -17,6 +17,8 @@
 
 // std
 #include <memory>
+#include <string>
+#include <utility>
 
 // ros
 #include "rclcpp/rclcpp.hpp"
@@ -88,7 +90,6 @@ protected:
   rclcpp::Service<ResetSrv>::SharedPtr reset_srv_;
 
   std::shared_ptr<StampedPublisherBase<core::DiagnosticReport>> diagnostics_pub_;
-
 };
 
 }  // namespace ros2

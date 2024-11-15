@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
-#define ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
 
 // std
 #include <string>
+#include <vector>
 
 // ros
 #include "rclcpp/rclcpp.hpp"
@@ -77,4 +78,4 @@ protected:
 }  // namespace ros2
 }  // namespace romea
 
-#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
