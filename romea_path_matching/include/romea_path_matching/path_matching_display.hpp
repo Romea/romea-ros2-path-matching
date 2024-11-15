@@ -12,33 +12,69 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
-#define ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
+#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
+#define ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_
 
 // std
-#include <vector>
+#include <string>
+
+// ros
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 // romea
 #include "romea_core_path/Path2D.hpp"
-#include "path_matching_display_base.hpp"
+#include "romea_core_path/PathSection2D.hpp"
+#include "romea_core_path/PathWayPoint2D.hpp"
+#include "romea_core_common/geometry/Pose2D.hpp"
+
 
 namespace romea
 {
 namespace ros2
 {
 
-class PathMatchingDisplay : public PathMatchingDisplayBase
+class PathMatchingDisplay
 {
 public:
-  using WayPoints = std::vector<std::vector<core::PathWayPoint2D>>;
+  using Marker = visualization_msgs::msg::Marker;
+  using MarkerArray = visualization_msgs::msg::MarkerArray;
+  using WayPoint = core::PathWayPoint2D;
+  using WayPoints = std::vector<std::vector<WayPoint>>;
 
 public:
-  void load_waypoints(const WayPoints & path_way_points);
+  PathMatchingDisplay();
+
+  virtual ~PathMatchingDisplay() = default;
+
+  void init(rclcpp_lifecycle::LifecycleNode::SharedPtr node, const std::string & path_frame_id);
+
+  void load_curve(const core::PathCurve2D & path_curve);
+
   void load_path(const core::Path2D & path);
-  void add_waypoint(const core::PathWayPoint2D & point);
+
+  void load_waypoints(const WayPoints & path_way_points);
+
+  void add_waypoint(const WayPoint & way_point);
+
+  void clear();
+
+  void publish();
+
+protected:
+  void initMarkers(const std::string & path_frame_id);
+
+protected:
+  bool is_display_activated_ = false;
+
+  rclcpp_lifecycle::LifecyclePublisher<MarkerArray>::SharedPtr marker_pub_;
+  Marker path_marker_;
+  Marker curve_marker_;
+  Marker clear_marker_;
 };
 
 }  // namespace ros2
 }  // namespace romea
 
-#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_HPP_
+#endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_DISPLAY_BASE_HPP_

@@ -31,7 +31,6 @@ add_library(${PROJECT_NAME} SHARED
   src/path_matching_base.cpp
   src/path_matching.cpp
   src/path_matching_display.cpp
-  src/path_matching_display_base.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}
@@ -57,6 +56,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN "romea::ros2::PathMatching"
   EXECUTABLE path_matching_node
+)
+
+rclcpp_components_register_node(${PROJECT_NAME}
+  PLUGIN "romea::ros2::OnTheFlyPathMatching"
+  EXECUTABLE on_the_fly_path_matching_node
 )
 
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
