@@ -27,6 +27,7 @@ find_package(std_srvs REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
+  src/on_the_fly_path_matching.cpp
   src/path_matching_base.cpp
   src/path_matching.cpp
   src/path_matching_display.cpp

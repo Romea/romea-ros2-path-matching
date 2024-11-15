@@ -35,9 +35,7 @@ public:
 public:
   void load_waypoints(const WayPoints & path_way_points);
   void load_path(const core::Path2D & path);
-
-protected:
-  void add_waypoint_(const core::PathWayPoint2D & point);
+  void add_waypoint(const core::PathWayPoint2D & point);
 };
 
 }  // namespace ros2

@@ -18,6 +18,7 @@
 
 // romea
 #include <romea_common_utils/qos.hpp>
+#include <romea_common_utils/params/node_parameters.hpp>
 
 // local
 #include "romea_path_matching/path_matching_base.hpp"
@@ -52,6 +53,22 @@ PathMatchingBase::PathMatchingBase(const rclcpp::NodeOptions & options)
   ParameterDescriptor pth_descr;
   pth_descr.description = "Time (in seconds) to look ahead on the path depending of robot speed";
   node_->declare_parameter("prediction_time_horizon", PREDICTION_TIME_HORIZON, pth_descr);
+
+  rcl_interfaces::msg::ParameterDescriptor path_frame_descr;
+  path_frame_descr.description = "Frame used to publish path messages";
+  node_->declare_parameter("path_frame_id", "map", path_frame_descr);
+
+  rcl_interfaces::msg::ParameterDescriptor autoconf_descr;
+  autoconf_descr.description = "Automatic configuration when the node is created";
+  node_->declare_parameter("autoconfigure", false, autoconf_descr);
+
+  rcl_interfaces::msg::ParameterDescriptor autostart_descr;
+  autostart_descr.description = "Automatically start the robot when the node is configured";
+  node_->declare_parameter("autostart", false, autostart_descr);
+
+  rcl_interfaces::msg::ParameterDescriptor display_descr;
+  display_descr.description = "Enable the publication of rviz markers";
+  node_->declare_parameter("display", true, display_descr);
 }
 
 //-----------------------------------------------------------------------------
@@ -65,9 +82,13 @@ PathMatchingBase::get_node_base_interface() const
 //-----------------------------------------------------------------------------
 PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lifecycle::State &)
 {
-  node_->get_parameter<double>("maximal_research_radius", maximal_research_radius_);
-  node_->get_parameter<double>("prediction_time_horizon", prediction_time_horizon_);
-  node_->get_parameter<double>("interpolation_window_length", interpolation_window_length_);
+  path_frame_id_ = get_parameter<std::string>(node_, "path_frame_id");
+  maximal_research_radius_ = get_parameter<double>(node_, "maximal_research_radius");
+  prediction_time_horizon_ = get_parameter<double>(node_, "prediction_time_horizon");
+  interpolation_window_length_ = get_parameter<double>(node_, "interpolation_window_length");
+
+  display_activated_ = get_parameter<bool>(node_, "display");
+  display_.init(node_, path_frame_id_);
 
   match_pub_ = node_->create_publisher<PathMatchingInfo2D>("~/info", reliable(1));
 

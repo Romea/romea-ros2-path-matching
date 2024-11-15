@@ -25,8 +25,11 @@
 #include "std_srvs/srv/empty.hpp"
 
 // romea
+#include "romea_core_common/geometry/Pose2D.hpp"
+#include "romea_core_common/geometry/Twist2D.hpp"
 #include "romea_common_utils/publishers/diagnostic_publisher.hpp"
 #include "romea_path_msgs/msg/path_matching_info2_d.hpp"
+#include "romea_path_matching/path_matching_display.hpp"
 
 namespace romea
 {
@@ -68,8 +71,14 @@ protected:
   double prediction_time_horizon_ = 0;
   double maximal_research_radius_ = 0;
   double interpolation_window_length_ = 0;
-
   bool is_active_ = false;
+  bool display_activated_ = false;
+
+  std::string path_frame_id_;
+  PathMatchingDisplay display_;
+  core::Duration odom_stamp_;
+  core::Pose2D odom_pose_;
+  core::Twist2D odom_twist_;
 
   std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_;
   std::shared_ptr<rclcpp::TimerBase> timer_;
@@ -79,6 +88,7 @@ protected:
   rclcpp::Service<ResetSrv>::SharedPtr reset_srv_;
 
   std::shared_ptr<StampedPublisherBase<core::DiagnosticReport>> diagnostics_pub_;
+
 };
 
 }  // namespace ros2

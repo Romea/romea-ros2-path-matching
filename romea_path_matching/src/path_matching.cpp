@@ -48,25 +48,9 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
   node_->register_on_deactivate(
     std::bind(&PathMatching::on_deactivate, this, std::placeholders::_1));
 
-  rcl_interfaces::msg::ParameterDescriptor path_frame_descr;
-  path_frame_descr.description = "Frame used to publish path messages";
-  node_->declare_parameter("path_frame_id", "map", path_frame_descr);
-
   rcl_interfaces::msg::ParameterDescriptor path_descr;
   path_descr.description = "Filename of the path to follow";
   node_->declare_parameter("path", rclcpp::PARAMETER_STRING, path_descr);
-
-  rcl_interfaces::msg::ParameterDescriptor autoconf_descr;
-  autoconf_descr.description = "Automatic configuration when the node is created";
-  node_->declare_parameter("autoconfigure", false, autoconf_descr);
-
-  rcl_interfaces::msg::ParameterDescriptor autostart_descr;
-  autostart_descr.description = "Automatically start the robot when the node is configured";
-  node_->declare_parameter("autostart", false, autostart_descr);
-
-  rcl_interfaces::msg::ParameterDescriptor display_descr;
-  display_descr.description = "Enable the publication of rviz markers";
-  node_->declare_parameter("display", true, display_descr);
 
   rcl_interfaces::msg::ParameterDescriptor anno_dist_min_descr;
   anno_dist_min_descr.description = "Lower bound of the abscissa interval for annotations";
@@ -92,18 +76,16 @@ try {
   PathMatchingBase::on_configure(state);
 
   auto path = get_parameter<std::string>(node_, "path");
-  path_frame_id_ = get_parameter<std::string>(node_, "path_frame_id");
   auto wgs84_anchor = get_geodetic_coordinates_parameter(node_, "wgs84_anchor");
-  display_activated_ = get_parameter<bool>(node_, "display");
   annotation_dist_min_ = get_parameter<double>(node_, "annotation_dist_min");
   annotation_dist_max_ = get_parameter<double>(node_, "annotation_dist_max");
 
-  // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
-  // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
   path_matching_ = std::make_unique<core::PathMatching>(
-    path, wgs84_anchor, maximal_research_radius_, interpolation_window_length_);
+    path,
+    wgs84_anchor,
+    maximal_research_radius_,
+    interpolation_window_length_);
 
-  display_.init(node_, path_frame_id_);
   display_.load_path(path_matching_->getPath());
 
   // comparator_.init();
@@ -111,7 +93,6 @@ try {
   // reset_sub_ = private_nh.subscribe<std_msgs::Bool>(
   //    "reset", 1, &PathMatching::resetCallback, this);
 
-  // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
   annotations_pub_ =
     node_->create_publisher<romea_path_msgs::msg::PathAnnotations>("~/annotations", reliable(1));
 
@@ -162,30 +143,27 @@ void PathMatching::process_odom_(const Odometry & msg)
     return;
   }
 
-  auto stamp = to_romea_duration(msg.header.stamp);
-  core::PoseAndTwist3D enuPoseAndBodyTwist3D;
-  to_romea(msg.pose, enuPoseAndBodyTwist3D.pose);
-  to_romea(msg.twist, enuPoseAndBodyTwist3D.twist);
-
   const auto & path = path_matching_->getPath();
-  auto vehicle_pose = core::toPose2D(enuPoseAndBodyTwist3D.pose);
-  auto vehicle_twist = core::toTwist2D(enuPoseAndBodyTwist3D.twist);
+  odom_stamp_ = to_romea_duration(msg.header.stamp);
+  odom_pose_ = core::toPose2D(to_romea(msg.pose));
+  odom_twist_ = core::toTwist2D(to_romea(msg.twist));
 
-  auto matched_points =
-    path_matching_->match(stamp, vehicle_pose, vehicle_twist, prediction_time_horizon_);
+  auto matched_points = path_matching_->match(
+    odom_stamp_, odom_pose_, odom_twist_, prediction_time_horizon_);
 
   if (!matched_points.empty()) {
     match_pub_->publish(
-      to_ros_msg(msg.header.stamp, matched_points, 0, path.getLength(), vehicle_twist));
+      to_ros_msg(msg.header.stamp, matched_points, 0, path.getLength(), odom_twist_));
 
     // use the last matched point for publishing annotation (higher curvilinear abscissa)
     const auto & last_matched_point = matched_points.back();
     publishNearAnnotations(last_matched_point, msg.header.stamp);
 
     if (display_activated_) {
-      const auto & section = path.getSection(matched_points[0].sectionIndex);
-      const auto & curve = section.getCurve(matched_points[0].curveIndex);
-      display_.load_curve(curve);
+      display_.load_curve(
+        path_matching_->getCurve(
+          matched_points[0].sectionIndex,
+          matched_points[0].curveIndex));
     }
   }
   display_.publish();

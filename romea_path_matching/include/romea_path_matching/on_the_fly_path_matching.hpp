@@ -12,34 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
-#define ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
+#ifndef ROMEA_PATH_MATCHING__ON_THE_FLY_PATH_MATCHING_HPP_
+#define ROMEA_PATH_MATCHING__ON_THE_FLY_PATH_MATCHING_HPP_
 
 // std
+#include <functional>
 #include <memory>
-#include <rclcpp_lifecycle/lifecycle_publisher.hpp>
 #include <string>
+#include <vector>
 
 // ros
-#include <rclcpp/time.hpp>
+#include "rclcpp/rclcpp.hpp"
 
 // romea
-#include <romea_core_path_matching/PathMatching.hpp>
-#include <romea_path_msgs/msg/path_annotations.hpp>
+#include "romea_core_path_matching/OnTheFlyPathMatching.hpp"
 
 // local
 #include "path_matching_base.hpp"
+#include "path_matching_display.hpp"
 
-namespace romea::ros2
+namespace romea
+{
+namespace ros2
 {
 
-class PathMatching : public PathMatchingBase
+class OnTheFlyPathMatching : public PathMatchingBase
 {
 public:
-  using PathAnnotations = romea_path_msgs::msg::PathAnnotations;
-
-public:
-  explicit PathMatching(const rclcpp::NodeOptions & options);
+  explicit OnTheFlyPathMatching(const rclcpp::NodeOptions & options);
 
   CallbackReturn on_configure(const rclcpp_lifecycle::State &);
 
@@ -49,21 +49,19 @@ public:
 
   void reset() override;
 
-private:
+protected:
   void process_odom_(const Odometry & msg) override;
+
+  void process_leader_odom_(const Odometry & msg);
 
   void timer_callback_() override;
 
-  void publishNearAnnotations(const core::PathMatchedPoint2D & point, const rclcpp::Time & stamp);
-
-private:
-  std::unique_ptr<core::PathMatching> path_matching_;
-
-  rclcpp_lifecycle::LifecyclePublisher<PathAnnotations>::SharedPtr annotations_pub_;
-  double annotation_dist_max_;
-  double annotation_dist_min_;
+protected:
+  std::mutex mutex_;
+  std::unique_ptr<core::OnTheFlyPathMatching> path_matching_;
 };
 
-}  // namespace romea::ros2
+}  // namespace ros2
+}  // namespace romea
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_

@@ -27,7 +27,7 @@ void PathMatchingDisplay::load_waypoints(const WayPoints & path_way_points)
 
   for (const auto & section_way_points : path_way_points) {
     for (const auto & way_point : section_way_points) {
-      add_waypoint_(way_point);
+      add_waypoint(way_point);
     }
   }
 }
@@ -49,7 +49,7 @@ void PathMatchingDisplay::load_path(const core::Path2D & path)
   }
 }
 
-void PathMatchingDisplay::add_waypoint_(const core::PathWayPoint2D & way_point)
+void PathMatchingDisplay::add_waypoint(const core::PathWayPoint2D & way_point)
 {
   auto & pt = path_marker_.points.emplace_back();
   pt.x = way_point.position.x();
