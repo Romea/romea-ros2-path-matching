@@ -165,6 +165,9 @@ void PathMatching::process_odom_(const Odometry & msg)
           matched_points[0].sectionIndex,
           matched_points[0].curveIndex));
     }
+  } else {
+    match_pub_->publish(
+      to_ros_msg(msg.header.stamp, {}, 0, path.getLength(), odom_twist_));
   }
   display_.publish();
 }
