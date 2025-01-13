@@ -15,6 +15,7 @@
 // std
 #include <memory>
 #include <string>
+#include <utility>
 
 // romea
 #include <romea_common_utils/qos.hpp>
