@@ -13,25 +13,25 @@
 // limitations under the License.
 
 // std
-#include <optional>
 #include <memory>
-#include <utility>
 #include <string>
+#include <utility>
 
 // romea
-#include "romea_common_utils/conversions/pose_and_twist3d_conversions.hpp"
-#include "romea_common_utils/conversions/twist2d_conversions.hpp"
-#include "romea_common_utils/params/node_parameters.hpp"
-#include "romea_common_utils/params/geodesy_parameters.hpp"
-#include "romea_core_common/geometry/PoseAndTwist3D.hpp"
-#include "romea_core_path/PathFile.hpp"
-#include "romea_core_path/PathMatching2D.hpp"
-#include "romea_path_utils/path_matching_info_conversions.hpp"
+#include <romea_common_utils/conversions/pose3d_conversions.hpp>
+#include <romea_common_utils/conversions/twist3d_conversions.hpp>
+#include <romea_common_utils/params/geodesy_parameters.hpp>
+#include <romea_common_utils/params/node_parameters.hpp>
+#include <romea_common_utils/qos.hpp>
+#include <romea_core_common/geometry/PoseAndTwist3D.hpp>
+#include <romea_path_msgs/msg/path_annotations.hpp>
+#include <romea_path_utils/path_matching_info_conversions.hpp>
+
+// local
 #include "romea_path_matching/path_matching.hpp"
 
 // #include "uturn_generator.hpp"
 // #include <romea_path_msgs/PathAnnotations.h>
-
 
 namespace romea
 {
@@ -41,35 +41,40 @@ namespace ros2
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 PathMatching::PathMatching(const rclcpp::NodeOptions & options)
-: PathMatchingBase(options),
-  path_matching_(nullptr)
+: PathMatchingBase(options), path_matching_(nullptr)
 {
-  node_->register_on_configure(
-    std::bind(&PathMatching::on_configure, this, std::placeholders::_1));
-  node_->register_on_activate(
-    std::bind(&PathMatching::on_activate, this, std::placeholders::_1));
+  node_->register_on_configure(std::bind(&PathMatching::on_configure, this, std::placeholders::_1));
+  node_->register_on_activate(std::bind(&PathMatching::on_activate, this, std::placeholders::_1));
   node_->register_on_deactivate(
     std::bind(&PathMatching::on_deactivate, this, std::placeholders::_1));
 
   rcl_interfaces::msg::ParameterDescriptor path_frame_descr;
   path_frame_descr.description = "Frame used to publish path messages";
-  node_->declare_parameter("path_frame_id", "map", std::move(path_frame_descr));
+  node_->declare_parameter("path_frame_id", "map", path_frame_descr);
 
   rcl_interfaces::msg::ParameterDescriptor path_descr;
   path_descr.description = "Filename of the path to follow";
-  node_->declare_parameter("path", rclcpp::PARAMETER_STRING, std::move(path_descr));
+  node_->declare_parameter("path", rclcpp::PARAMETER_STRING, path_descr);
 
   rcl_interfaces::msg::ParameterDescriptor autoconf_descr;
   autoconf_descr.description = "Automatic configuration when the node is created";
-  node_->declare_parameter("autoconfigure", false, std::move(autoconf_descr));
+  node_->declare_parameter("autoconfigure", false, autoconf_descr);
 
   rcl_interfaces::msg::ParameterDescriptor autostart_descr;
   autostart_descr.description = "Automatically start the robot when the node is configured";
-  node_->declare_parameter("autostart", false, std::move(autostart_descr));
+  node_->declare_parameter("autostart", false, autostart_descr);
 
   rcl_interfaces::msg::ParameterDescriptor display_descr;
   display_descr.description = "Enable the publication of rviz markers";
-  node_->declare_parameter("display", true, std::move(display_descr));
+  node_->declare_parameter("display", true, display_descr);
+
+  rcl_interfaces::msg::ParameterDescriptor anno_dist_min_descr;
+  anno_dist_min_descr.description = "Lower bound of the abscissa interval for annotations";
+  node_->declare_parameter("annotation_dist_min", -5.0, anno_dist_min_descr);
+
+  rcl_interfaces::msg::ParameterDescriptor anno_dist_max_descr;
+  anno_dist_max_descr.description = "Upper bound of the abscissa interval for annotations";
+  node_->declare_parameter("annotation_dist_max", 5.0, anno_dist_max_descr);
 
   declare_geodetic_coordinates_parameter(node_, "wgs84_anchor");
 
@@ -83,14 +88,15 @@ PathMatching::PathMatching(const rclcpp::NodeOptions & options)
 
 //-----------------------------------------------------------------------------
 PathMatching::CallbackReturn PathMatching::on_configure(const rclcpp_lifecycle::State & state)
-try
-{
+try {
   PathMatchingBase::on_configure(state);
 
   auto path = get_parameter<std::string>(node_, "path");
   path_frame_id_ = get_parameter<std::string>(node_, "path_frame_id");
   auto wgs84_anchor = get_geodetic_coordinates_parameter(node_, "wgs84_anchor");
   display_activated_ = get_parameter<bool>(node_, "display");
+  annotation_dist_min_ = get_parameter<double>(node_, "annotation_dist_min");
+  annotation_dist_max_ = get_parameter<double>(node_, "annotation_dist_max");
 
   // annotation_dist_max_ = get_parameter_or(node_, "annotation_dist_max", 5.);
   // annotation_dist_min_ = get_parameter_or(node_, "annotation_dist_min", -0.5);
@@ -100,12 +106,14 @@ try
   display_.init(node_, path_frame_id_);
   display_.load_path(path_matching_->getPath());
 
-
   // comparator_.init();
   // uturn_generator_.init();
   // reset_sub_ = private_nh.subscribe<std_msgs::Bool>(
   //    "reset", 1, &PathMatching::resetCallback, this);
+
   // annotations_pub_ = private_nh.advertise<romea_path_msgs::PathAnnotations>("annotations", 1);
+  annotations_pub_ =
+    node_->create_publisher<romea_path_msgs::msg::PathAnnotations>("~/annotations", reliable(1));
 
   // loadPath(path);
 
@@ -148,7 +156,9 @@ void PathMatching::reset()
 //-----------------------------------------------------------------------------
 void PathMatching::process_odom_(const Odometry & msg)
 {
-  if (!is_active_) {return;}
+  if (!is_active_) {
+    return;
+  }
 
   auto stamp = to_romea_duration(msg.header.stamp);
   core::PoseAndTwist3D enuPoseAndBodyTwist3D;
@@ -159,14 +169,16 @@ void PathMatching::process_odom_(const Odometry & msg)
   auto vehicle_pose = core::toPose2D(enuPoseAndBodyTwist3D.pose);
   auto vehicle_twist = core::toTwist2D(enuPoseAndBodyTwist3D.twist);
 
-  auto matched_points = path_matching_->match(
-    stamp, vehicle_pose, vehicle_twist, prediction_time_horizon_);
+  auto matched_points =
+    path_matching_->match(stamp, vehicle_pose, vehicle_twist, prediction_time_horizon_);
 
   if (!matched_points.empty()) {
     match_pub_->publish(
       to_ros_msg(msg.header.stamp, matched_points, 0, path.getLength(), vehicle_twist));
 
-    // publishNearAnnotations(matched_point, msg.header.stamp);
+    // use the last matched point for publishing annotation (higher curvilinear abscissa)
+    const auto & last_matched_point = matched_points.back();
+    publishNearAnnotations(last_matched_point, msg.header.stamp);
 
     if (display_activated_) {
       const auto & section = path.getSection(matched_points[0].sectionIndex);
@@ -185,6 +197,36 @@ void PathMatching::timer_callback_()
   diagnostics_pub_->publish(stamp, report);
 }
 
+void PathMatching::publishNearAnnotations(
+  const core::PathMatchedPoint2D & point, const rclcpp::Time & stamp)
+{
+  romea_path_msgs::msg::PathAnnotations msg;
+  msg.header.stamp = stamp;
+  msg.header.frame_id = path_frame_id_;
+
+  const auto & annotations = path_matching_->getPath().getAnnotations();
+  // auto annotation_it = annotations.lower_bound(point.globalIndex);
+  auto annotation_it = begin(annotations);
+  double abscissa_max = point.frenetPose.curvilinearAbscissa + annotation_dist_max_;
+  double abscissa_min = point.frenetPose.curvilinearAbscissa + annotation_dist_min_;
+
+  while (annotation_it != end(annotations)) {
+    const auto & annotation = annotation_it->second;
+    if (annotation.abscissa < abscissa_max && annotation.abscissa > abscissa_min) {
+      auto & new_a = msg.annotations.emplace_back();
+      new_a.type = annotation.type;
+      new_a.value = annotation.value;
+      new_a.curvilinear_abcissa = annotation.abscissa;
+      new_a.curvilinear_distance = annotation.abscissa - point.frenetPose.curvilinearAbscissa;
+    }
+
+    ++annotation_it;
+  }
+
+  if (!annotations.empty()) {
+    annotations_pub_->publish(msg);
+  }
+}
 
 }  // namespace ros2
 }  // namespace romea

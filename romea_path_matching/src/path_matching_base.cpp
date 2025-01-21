@@ -17,7 +17,7 @@
 #include <string>
 
 // romea
-#include "romea_common_utils/qos.hpp"
+#include <romea_common_utils/qos.hpp>
 
 // local
 #include "romea_path_matching/path_matching_base.hpp"

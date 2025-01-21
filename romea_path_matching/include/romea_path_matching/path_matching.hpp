@@ -16,28 +16,29 @@
 #define ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
 
 // std
-#include <functional>
 #include <memory>
+#include <rclcpp_lifecycle/lifecycle_publisher.hpp>
 #include <string>
-#include <vector>
 
 // ros
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/time.hpp>
 
 // romea
-#include "romea_core_path_matching/PathMatching.hpp"
+#include <romea_core_path_matching/PathMatching.hpp>
+#include <romea_path_msgs/msg/path_annotations.hpp>
 
 // local
 #include "path_matching_base.hpp"
 #include "path_matching_display.hpp"
 
-namespace romea
-{
-namespace ros2
+namespace romea::ros2
 {
 
 class PathMatching : public PathMatchingBase
 {
+public:
+  using PathAnnotations = romea_path_msgs::msg::PathAnnotations;
+
 public:
   explicit PathMatching(const rclcpp::NodeOptions & options);
 
@@ -49,21 +50,25 @@ public:
 
   void reset() override;
 
-protected:
+private:
   void process_odom_(const Odometry & msg) override;
 
   void timer_callback_() override;
 
-protected:
+  void publishNearAnnotations(const core::PathMatchedPoint2D & point, const rclcpp::Time & stamp);
+
+private:
   PathMatchingDisplay display_;
   std::string path_frame_id_;
-  bool autostart_;
   bool display_activated_;
 
   std::unique_ptr<core::PathMatching> path_matching_;
+
+  rclcpp_lifecycle::LifecyclePublisher<PathAnnotations>::SharedPtr annotations_pub_;
+  double annotation_dist_max_;
+  double annotation_dist_min_;
 };
 
-}  // namespace ros2
-}  // namespace romea
+}  // namespace romea::ros2
 
 #endif  // ROMEA_PATH_MATCHING__PATH_MATCHING_HPP_
