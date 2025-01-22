@@ -131,6 +131,8 @@ try {
 PathMatching::CallbackReturn PathMatching::on_activate(const rclcpp_lifecycle::State & state)
 {
   CallbackReturn result = PathMatchingBase::on_activate(state);
+  annotations_pub_->on_activate();
+
   RCLCPP_INFO(node_->get_logger(), "activated");
   return result;
 }
@@ -223,9 +225,7 @@ void PathMatching::publishNearAnnotations(
     ++annotation_it;
   }
 
-  if (!annotations.empty()) {
-    annotations_pub_->publish(msg);
-  }
+  annotations_pub_->publish(msg);
 }
 
 }  // namespace ros2
