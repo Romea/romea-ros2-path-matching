@@ -98,7 +98,7 @@ PathMatchingBase::CallbackReturn PathMatchingBase::on_configure(const rclcpp_lif
 
   using namespace std::placeholders;
   auto callback = std::bind(&PathMatchingBase::process_odom_, this, _1);
-  odom_sub_ = node_->create_subscription<Odometry>("odom", best_effort(1), callback);
+  odom_sub_ = node_->create_subscription<Odometry>("odom", reliable(1), callback);
 
   auto reset_callback = std::bind(&PathMatchingBase::reset_srv_callback_, this, _1, _2);
   reset_srv_ = node_->create_service<std_srvs::srv::Empty>("~/reset", reset_callback);
